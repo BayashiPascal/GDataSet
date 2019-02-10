@@ -1,0 +1,20 @@
+{
+  "dataSet": "testGDataSetGenBrushPair",
+  "dataSetType": "1",
+  "desc": "UnitTestGDataSetGenBrushPair",
+  "dim": {
+    "_dim":"2",
+    "_val":["20", "10"]
+  },
+  "nbSample": "2",
+  "samples": [
+    {
+      "img":"img000.tga",
+      "mask":"mask000.tga"
+    },
+    {
+      "img":"img001.tga",
+      "mask":"mask001.tga"
+    }
+  ]
+}

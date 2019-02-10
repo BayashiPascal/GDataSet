@@ -1,0 +1,84 @@
+\section*{Introduction}
+
+GDataSet is a C library to manipulate generic data sets.\\
+
+It offers the following functionalities:\\
+\begin{itemize}
+\item loading a data set from its description file
+\item splitting the data set into user defined categories (e.g. training, validation, test)
+\item shuffling the data set
+\item looping through the samples of the data set. 
+\end{itemize}
+
+It provides an unique interface to several implementation supporting various types of dataset. Supported types are: VecFloat and pair of GenBrush (img/mask).\\
+
+The GDataSet library uses the \begin{ttfamily}PBErr\end{ttfamily}, \begin{ttfamily}GSet\end{ttfamily}, \begin{ttfamily}PBJson\end{ttfamily}, \begin{ttfamily}PBMath\end{ttfamily} and \begin{ttfamily}PBFileSys\end{ttfamily} libraries.\\
+
+\section{Interface}
+
+\begin{scriptsize}
+\begin{ttfamily}
+\verbatiminput{/home/bayashi/GitHub/GDataSet/gdataset.h}
+\end{ttfamily}
+\end{scriptsize}
+
+\section{Code}
+
+\subsection{gdataset.c}
+
+\begin{scriptsize}
+\begin{ttfamily}
+\verbatiminput{/home/bayashi/GitHub/GDataSet/gdataset.c}
+\end{ttfamily}
+\end{scriptsize}
+
+\subsection{gdataset-inline.c}
+
+\begin{scriptsize}
+\begin{ttfamily}
+\verbatiminput{/home/bayashi/GitHub/GDataSet/gdataset-inline.c}
+\end{ttfamily}
+\end{scriptsize}
+
+\section{Makefile}
+
+\begin{scriptsize}
+\begin{ttfamily}
+\verbatiminput{../Makefile}
+\end{ttfamily}
+\end{scriptsize}
+
+\section{Dataset configuration file}
+
+\subsection{VecFloat}
+
+\begin{scriptsize}
+\begin{ttfamily}
+\verbatiminput{../testGDataSetVecFloat.json}
+\end{ttfamily}
+\end{scriptsize}
+
+\subsection{Pair of GenBrush}
+
+\begin{scriptsize}
+\begin{ttfamily}
+\verbatiminput{../testGDataSetGenBrushPair.json}
+\end{ttfamily}
+\end{scriptsize}
+
+\section{Unit tests}
+
+\begin{scriptsize}
+\begin{ttfamily}
+\verbatiminput{../main.c}
+\end{ttfamily}
+\end{scriptsize}
+
+\section{Unit test output}
+
+\begin{scriptsize}
+\begin{ttfamily}
+\verbatiminput{../unitTestRef.txt}
+\end{ttfamily}
+\end{scriptsize}
+
