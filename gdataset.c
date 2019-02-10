@@ -176,11 +176,21 @@ GDataSetVecFloat GDataSetVecFloatCreateStatic(
     VecDecodeAsJSON(&v, val);
     GSetAppend(&(that._dataSet._samples), v);
   }
-  // Init the split
-  VecShort* split = VecShortCreate(1);
-  VecSet(split, 0, that._dataSet._nbSample);
-  GDSSplit(&that, split);
-  VecFree(&split);
+  // Create the initial category
+  that._dataSet._split = VecShortCreate(1);
+  VecSet(that._dataSet._split, 0, that._dataSet._nbSample);
+  that._dataSet._categories = PBErrMalloc(GDataSetErr, sizeof(GSet));
+  that._dataSet._categories[0] = GSetCreateStatic();
+  GSetIterForward iter = 
+    GSetIterForwardCreateStatic(&(that._dataSet._samples));
+  do {
+    void* sample = GSetIterGet(&iter);
+    GSetAppend(that._dataSet._categories, sample);
+  } while (GSetIterStep(&iter));
+  that._dataSet._iterators = 
+    PBErrMalloc(GDataSetErr, sizeof(GSetIterForward));
+  that._dataSet._iterators[0] = 
+    GSetIterForwardCreateStatic(that._dataSet._categories);
   // Return the new GDataSetVecFloat
   return that;
 }
@@ -273,11 +283,21 @@ GDataSetGenBrushPair GDataSetGenBrushPairCreateStatic(
     // Add the pair to the samples
     GSetAppend(&(that._dataSet._samples), pair);
   }
-  // Init the split
-  VecShort* split = VecShortCreate(1);
-  VecSet(split, 0, that._dataSet._nbSample);
-  GDSSplit(&that, split);
-  VecFree(&split);
+  // Create the initial category
+  that._dataSet._split = VecShortCreate(1);
+  VecSet(that._dataSet._split, 0, that._dataSet._nbSample);
+  that._dataSet._categories = PBErrMalloc(GDataSetErr, sizeof(GSet));
+  that._dataSet._categories[0] = GSetCreateStatic();
+  GSetIterForward iter = 
+    GSetIterForwardCreateStatic(&(that._dataSet._samples));
+  do {
+    void* sample = GSetIterGet(&iter);
+    GSetAppend(that._dataSet._categories, sample);
+  } while (GSetIterStep(&iter));
+  that._dataSet._iterators = 
+    PBErrMalloc(GDataSetErr, sizeof(GSetIterForward));
+  that._dataSet._iterators[0] = 
+    GSetIterForwardCreateStatic(that._dataSet._categories);
   // Return the new GDataSetVecFloat
   return that;
 }

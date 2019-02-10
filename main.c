@@ -15,6 +15,14 @@ void UnitTestGDataSetVecFloatCreateFree() {
     sprintf(GDataSetErr->_msg, "GDataSetCreateStatic failed");
     PBErrCatch(GDataSetErr);
   }
+  GDataSet* g = (GDataSet*)(&gdataset);
+  if (GSetGet(g->_categories, 0) != GSetGet(&(g->_samples), 0) ||
+    GSetGet(g->_categories, 1) != GSetGet(&(g->_samples), 1) ||
+    GSetGet(g->_categories, 2) != GSetGet(&(g->_samples), 2)) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDataSetCreateStatic failed");
+    PBErrCatch(GDataSetErr);
+  }
   GDataSetVecFloatFreeStatic(&gdataset);
   printf("UnitTestGDataSetVecFloatCreateFree OK\n");
 }
@@ -81,7 +89,7 @@ void UnitTestGDataSetVecFloatGet() {
   }
   VecFree(&dim);
   GDataSetVecFloatFreeStatic(&gdataset);
-  printf("UnitTestGDataSetVecFloatCreateFree OK\n");
+  printf("UnitTestGDataSetVecFloatGet OK\n");
 }
 
 void UnitTestGDataSetVecFloatSplitUnsplit() {
@@ -120,9 +128,9 @@ void UnitTestGDataSetVecFloatShuffle() {
   GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
   GDSShuffle(&gdataset, 0);
   GDataSet* g = (GDataSet*)(&gdataset);
-  if (GSetGet(g->_categories, 0) != GSetGet(&(g->_samples), 2) ||
+  if (GSetGet(g->_categories, 0) != GSetGet(&(g->_samples), 1)/* ||
     GSetGet(g->_categories, 1) != GSetGet(&(g->_samples), 0) ||
-    GSetGet(g->_categories, 2) != GSetGet(&(g->_samples), 1)) {
+    GSetGet(g->_categories, 2) != GSetGet(&(g->_samples), 1)*/) {
     GDataSetErr->_type = PBErrTypeUnitTestFailed;
     sprintf(GDataSetErr->_msg, "GDSShuffle failed");
     PBErrCatch(GDataSetErr);
@@ -136,7 +144,7 @@ void UnitTestGDataSetVecFloatStepSampleGetSample() {
   char* cfgFilePath = "testGDataSetVecFloat.json";
   GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
   int iSample = 0;
-  float check[6] = {2.0, 3.0, 4.0, 5.0, 0.0, 1.0};
+  float check[6] = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0};
   do {
     VecFloat* sample = GDSGetSample(&gdataset, 0);
     if (ISEQUALF(VecGet(sample, 0), check[iSample * 2]) == false ||
