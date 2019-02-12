@@ -189,9 +189,31 @@ void UnitTestGDataSetGenBrushPair() {
   printf("UnitTestGDataSetGenBrushPair OK\n");
 }
 
+void UnitTestSDSIA() {
+  srandom(1);
+  char* cfgFilePath = "../SDSIA/UnitTestOut/001/001/dataset.json";
+  GDataSetGenBrushPair gdataset = 
+    GDataSetGenBrushPairCreateStatic(cfgFilePath);
+  do {
+    GDSGenBrushPair* sample = GDSGetSample(&gdataset, 0);
+    if (VecIsEqual(GBDim(sample->_img), 
+      GDSSampleDim(&gdataset)) == false ||
+      VecIsEqual(GBDim(sample->_mask), 
+      GDSSampleDim(&gdataset)) == false) {
+      GDataSetErr->_type = PBErrTypeUnitTestFailed;
+      sprintf(GDataSetErr->_msg, "GDSGetSample<GenBrushPair> failed");
+      PBErrCatch(GDataSetErr);
+    }
+    GDSGenBrushPairFree(&sample);
+  } while (GDSStepSample(&gdataset, 0));
+  GDataSetGenBrushPairFreeStatic(&gdataset);
+  printf("UnitTestSDSIA OK\n");
+}
+
 void UnitTestAll() {
   UnitTestGDataSetVecFloat();
   UnitTestGDataSetGenBrushPair();
+  //UnitTestSDSIA();
 }
 
 int main(void) {
