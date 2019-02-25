@@ -78,15 +78,18 @@ typedef struct GDataSetGenBrushPair {
   char* _format;
   // Dimensions of images
   VecShort2D _dim;
+  // Nb of mask per img
+  int _nbMask;
 } GDataSetGenBrushPair;
 
+#define GDS_NBMAXMASK 100
 typedef struct GDSFilePathPair {
-  char* _path[2];
+  char* _path[1 + GDS_NBMAXMASK];
 } GDSFilePathPair;
 
 typedef struct GDSGenBrushPair {
   GenBrush* _img;
-  GenBrush* _mask;
+  GenBrush* _mask[GDS_NBMAXMASK];
 } GDSGenBrushPair;
 
 // ================ Functions declaration ====================
@@ -122,6 +125,15 @@ void GDataSetGenBrushPairFreeStatic(GDataSetGenBrushPair* const that);
 inline
 #endif 
 long _GDSGetSize(const GDataSet* const that);
+
+// Get the number of masks in the GDataSet 'that'
+int _GDSGetNbMask(const GDataSet* const that);
+
+// Get the number of masks in the GDataSetGenBrushPair 'that'
+#if BUILDMODE != 0
+inline
+#endif 
+int GDSGetNbMaskGenBrushPair(const GDataSetGenBrushPair* const that);
 
 // Get the total number of samples in the GDataSet 'that' for the 
 // category 'iCat'. Return 0 if the category doesn't exists
@@ -235,11 +247,11 @@ GDSGenBrushPair* GDSGetSampleGenBrushPair(
 
 // Release the memory used by the FilePathPair 'that'
 void GDSFilePathPairFree(GDSFilePathPair** const that);
-
 #ifdef GENBRUSH_H
 // Release the memory used by the GenBrushPair 'that'
 void GDSGenBrushPairFree(GDSGenBrushPair** const that);
 #endif
+
 // Get the dimensions of the samples of GDataSet 'that'
 #if BUILDMODE != 0
 inline
@@ -337,6 +349,13 @@ const VecShort* _GDSSampleDim(const GDataSet* const that);
   GDataSetGenBrushPair*: _GDSName, \
   const GDataSetGenBrushPair*: _GDSName, \
   default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet)
+
+#define GDSGetNbMask(DataSet) _Generic(DataSet, \
+  GDataSet*: _GDSGetNbMask, \
+  const GDataSet*: _GDSGetNbMask, \
+  GDataSetGenBrushPair*: GDSGetNbMaskGenBrushPair, \
+  const GDataSetGenBrushPair*: GDSGetNbMaskGenBrushPair, \
+  default: PBErrInvalidPolymorphism)(DataSet)
 
 #define GDSReset(DataSet, ICat) _Generic(DataSet, \
   GDataSet*: _GDSReset, \

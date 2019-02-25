@@ -309,6 +309,20 @@ const VecShort* _GDSSampleDim(const GDataSet* const that) {
   return that->_sampleDim;
 }
 
+// Get the number of masks in the GDataSetGenBrushPair 'that'
+#if BUILDMODE != 0
+inline
+#endif 
+int GDSGetNbMaskGenBrushPair(const GDataSetGenBrushPair* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  return that->_nbMask;
+}
 
 
 

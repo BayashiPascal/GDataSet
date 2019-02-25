@@ -173,39 +173,50 @@ void UnitTestGDataSetGenBrushPair() {
   char* cfgFilePath = "testGDataSetGenBrushPair.json";
   GDataSetGenBrushPair gdataset = 
     GDataSetGenBrushPairCreateStatic(cfgFilePath);
+  if (GDSGetNbMask(&gdataset) != 2) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSGetSample<GenBrushPair> failed");
+    PBErrCatch(GDataSetErr);
+  }
+  int iCat = 0;
   do {
-    GDSGenBrushPair* sample = GDSGetSample(&gdataset, 0);
+    GDSGenBrushPair* sample = GDSGetSample(&gdataset, iCat);
     if (VecIsEqual(GBDim(sample->_img), 
       GDSSampleDim(&gdataset)) == false ||
-      VecIsEqual(GBDim(sample->_mask), 
+      VecIsEqual(GBDim(sample->_mask[0]), 
+      GDSSampleDim(&gdataset)) == false ||
+      VecIsEqual(GBDim(sample->_mask[1]), 
       GDSSampleDim(&gdataset)) == false) {
       GDataSetErr->_type = PBErrTypeUnitTestFailed;
       sprintf(GDataSetErr->_msg, "GDSGetSample<GenBrushPair> failed");
       PBErrCatch(GDataSetErr);
     }
     GDSGenBrushPairFree(&sample);
-  } while (GDSStepSample(&gdataset, 0));
+  } while (GDSStepSample(&gdataset, iCat));
   GDataSetGenBrushPairFreeStatic(&gdataset);
   printf("UnitTestGDataSetGenBrushPair OK\n");
 }
 
 void UnitTestSDSIA() {
   srandom(1);
-  char* cfgFilePath = "../SDSIA/UnitTestOut/001/001/dataset.json";
+  char* cfgFilePath = "../SDSIA/UnitTestOut/002/001/dataset.json";
   GDataSetGenBrushPair gdataset = 
     GDataSetGenBrushPairCreateStatic(cfgFilePath);
+  int iCat = 0;
   do {
-    GDSGenBrushPair* sample = GDSGetSample(&gdataset, 0);
+    GDSGenBrushPair* sample = GDSGetSample(&gdataset, iCat);
     if (VecIsEqual(GBDim(sample->_img), 
       GDSSampleDim(&gdataset)) == false ||
-      VecIsEqual(GBDim(sample->_mask), 
+      VecIsEqual(GBDim(sample->_mask[0]), 
+      GDSSampleDim(&gdataset)) == false ||
+      VecIsEqual(GBDim(sample->_mask[1]), 
       GDSSampleDim(&gdataset)) == false) {
       GDataSetErr->_type = PBErrTypeUnitTestFailed;
       sprintf(GDataSetErr->_msg, "GDSGetSample<GenBrushPair> failed");
       PBErrCatch(GDataSetErr);
     }
     GDSGenBrushPairFree(&sample);
-  } while (GDSStepSample(&gdataset, 0));
+  } while (GDSStepSample(&gdataset, iCat));
   GDataSetGenBrushPairFreeStatic(&gdataset);
   printf("UnitTestSDSIA OK\n");
 }
@@ -213,7 +224,7 @@ void UnitTestSDSIA() {
 void UnitTestAll() {
   UnitTestGDataSetVecFloat();
   UnitTestGDataSetGenBrushPair();
-  //UnitTestSDSIA();
+  UnitTestSDSIA();
 }
 
 int main(void) {

@@ -1,20 +1,41 @@
 {
-  "dataSet": "testGDataSetGenBrushPair",
+  "dataSet": "dataset-002-001",
   "dataSetType": "1",
-  "desc": "UnitTestGDataSetGenBrushPair",
+  "desc": "unitTest",
   "dim": {
-    "_dim":"2",
-    "_val":["20", "10"]
+    "_dim": "2",
+    "_val": [
+      "10",
+      "20"
+    ]
   },
-  "nbSample": "2",
+  "format": "tga",
+  "nbMask": "2",
+  "nbSample": "3",
   "samples": [
     {
-      "img":"img000.tga",
-      "mask":"mask000.tga"
+      "bounding": [],
+      "img": "img000.tga",
+      "mask": [
+        "mask000-000.tga",
+        "mask000-001.tga"
+      ]
     },
     {
-      "img":"img001.tga",
-      "mask":"mask001.tga"
+      "bounding": [],
+      "img": "img001.tga",
+      "mask": [
+        "mask001-000.tga",
+        "mask001-001.tga"
+      ]
+    },
+    {
+      "bounding": [],
+      "img": "img002.tga",
+      "mask": [
+        "mask002-000.tga",
+        "mask002-001.tga"
+      ]
     }
   ]
 }

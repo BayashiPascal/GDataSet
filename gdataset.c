@@ -236,8 +236,24 @@ GDataSetGenBrushPair GDataSetGenBrushPairCreateStatic(
       VecGetDim(GDSSampleDim(&that)));
     PBErrCatch(GDataSetErr);
   }
+  // Get the nb of mask
+  JSONNode* prop = JSONProperty(that._dataSet._json, "nbMask");
+  if (prop == NULL) {
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, 
+      "Invalid description file (nbMask missing)");
+    PBErrCatch(GDataSetErr);
+  }
+  that._nbMask = atoi(JSONLabel(JSONValue(prop, 0)));
+  if (that._nbMask >= GDS_NBMAXMASK) {
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, 
+      "Invalid description file (invalid nbMask %d>=%d)", 
+      that._nbMask, GDS_NBMAXMASK);
+    PBErrCatch(GDataSetErr);
+  }
   // Load the samples
-  JSONNode* prop = JSONProperty(that._dataSet._json, "samples");
+  prop = JSONProperty(that._dataSet._json, "samples");
   if (prop == NULL) {
     GDataSetErr->_type = PBErrTypeInvalidData;
     sprintf(GDataSetErr->_msg, 
@@ -256,6 +272,9 @@ GDataSetGenBrushPair GDataSetGenBrushPairCreateStatic(
     // Allocate memory for the pair image/mask
     GDSFilePathPair* pair = PBErrMalloc(GDataSetErr, 
       sizeof(GDSFilePathPair));
+    pair->_path[0] = NULL;
+    for (int iMask = GDS_NBMAXMASK; iMask--;)
+      pair->_path[1 + iMask] = NULL;
     // Decode img
     JSONNode* subProp = JSONProperty(val, "img");
     if (subProp == NULL) {
@@ -276,10 +295,12 @@ GDataSetGenBrushPair GDataSetGenBrushPairCreateStatic(
         "Invalid description file (samples.mask missing)");
       PBErrCatch(GDataSetErr);
     }
-    subVal = JSONValue(subProp, 0);
-    pair->_path[1] = PBErrMalloc(GDataSetErr, 
-      sizeof(char) * (strlen(JSONLabel(subVal)) + 1));
-    strcpy(pair->_path[1], JSONLabel(subVal));
+    for (int iMask = 0; iMask < that._nbMask; ++iMask) {
+      subVal = JSONValue(subProp, iMask);
+      pair->_path[1 + iMask] = PBErrMalloc(GDataSetErr, 
+        sizeof(char) * (strlen(JSONLabel(subVal)) + 1));
+      strcpy(pair->_path[1 + iMask], JSONLabel(subVal));
+    }
     // Add the pair to the samples
     GSetAppend(&(that._dataSet._samples), pair);
   }
@@ -404,6 +425,19 @@ void* _GDSGetSample(
   }
 }
 
+// Get the number of masks in the GDataSet 'that'
+int _GDSGetNbMask(const GDataSet* const that) {
+  // Call the appropriate function according to the type
+  switch (GDSGetType(that)) {
+    case GDataSetType_GenBrushPair:
+      return GDSGetNbMaskGenBrushPair((GDataSetGenBrushPair*)that);
+      break;
+    default:
+      return 0;
+      break;
+  }
+}
+
 VecFloat* GDSGetSampleVecFloat(
   const GDataSetVecFloat* const that, const int iCat) {
 #if BUILDMODE == 0
@@ -442,12 +476,14 @@ GDSGenBrushPair* GDSGetSampleGenBrushPair(
     GSetIterGet(((GDataSet*)that)->_iterators + iCat);
   GDSGenBrushPair* pairSample = PBErrMalloc(GDataSetErr, 
     sizeof(GDSGenBrushPair));
+  for (int iMask = 0; iMask < GDS_NBMAXMASK; ++iMask)
+    pairSample->_mask[iMask] = NULL;
   char* root = GDSGetCfgFolderPath(that);
   char* path = PBFSJoinPath(root, pairFile->_path[0]);
   GenBrush* gb = GBCreateFromFile(path);
   // Rescale the sample if needed to always provide to the user
   // the dimensions defined in the configuration file of the data set
-  if (!VecIsEqual(GBDim(gb), GDSSampleDim(that))) {
+  if (gb != NULL && !VecIsEqual(GBDim(gb), GDSSampleDim(that))) {
     pairSample->_img = GBScale(gb, 
       (const VecShort2D*)GDSSampleDim(that), GBScaleMethod_Default);
     GBFree(&gb);
@@ -455,16 +491,18 @@ GDSGenBrushPair* GDSGetSampleGenBrushPair(
     pairSample->_img = gb;
   }
   free(path);
-  path = PBFSJoinPath(root, pairFile->_path[1]);
-  gb = GBCreateFromFile(path);
-  if (!VecIsEqual(GBDim(gb), GDSSampleDim(that))) {
-    pairSample->_mask = GBScale(gb, 
-      (const VecShort2D*)GDSSampleDim(that), GBScaleMethod_Default);
-    GBFree(&gb);
-  } else {
-    pairSample->_mask = gb;
+  for (int iMask = 0; iMask < GDSGetNbMask(that); ++iMask) {
+    path = PBFSJoinPath(root, pairFile->_path[1 + iMask]);
+    gb = GBCreateFromFile(path);
+    if (gb != NULL && !VecIsEqual(GBDim(gb), GDSSampleDim(that))) {
+      pairSample->_mask[iMask] = GBScale(gb, 
+        (const VecShort2D*)GDSSampleDim(that), GBScaleMethod_Default);
+      GBFree(&gb);
+    } else {
+      pairSample->_mask[iMask] = gb;
+    }
+    free(path);
   }
-  free(path);
   free(root);
   return pairSample;
 }
@@ -473,8 +511,9 @@ GDSGenBrushPair* GDSGetSampleGenBrushPair(
 void GDSFilePathPairFree(GDSFilePathPair** const that) {
   if (that == NULL || *that == NULL)
     return;
-  free((*that)->_path[0]);
-  free((*that)->_path[1]);
+  for (int iMask = GDS_NBMAXMASK + 1; iMask--;)
+    if ((*that)->_path[iMask] != NULL)
+      free((*that)->_path[iMask]);
   free(*that);
   *that = NULL;
 }
@@ -484,7 +523,8 @@ void GDSGenBrushPairFree(GDSGenBrushPair** const that) {
   if (that == NULL || *that == NULL)
     return;
   GBFree(&((*that)->_img));
-  GBFree(&((*that)->_mask));
+  for (int iMask = GDS_NBMAXMASK; iMask--;)
+    GBFree(&((*that)->_mask[iMask]));
   free(*that);
   *that = NULL;
 }
