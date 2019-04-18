@@ -324,6 +324,35 @@ int GDSGetNbMaskGenBrushPair(const GDataSetGenBrushPair* const that) {
   return that->_nbMask;
 }
 
+// Get the samples of the GDataSet 'that'
+#if BUILDMODE != 0
+inline
+#endif 
+const GSetVecFloat* _GDSVecFloatSamples(
+  const GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  return (GSetVecFloat*)&(that->_dataSet._samples);
+}
+#if BUILDMODE != 0
+inline
+#endif 
+const GSet* _GDSGenBrushPairSamples(
+  const GDataSetGenBrushPair* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  return &(that->_dataSet._samples);
+}
 
 
 

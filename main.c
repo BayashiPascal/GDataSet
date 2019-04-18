@@ -80,6 +80,11 @@ void UnitTestGDataSetVecFloatGet() {
     sprintf(GDataSetErr->_msg, "GDSGetSizeCat failed");
     PBErrCatch(GDataSetErr);
   }
+  if ((GSet*)GDSSamples(&gdataset) != &(gdataset._dataSet._samples)) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSSamples failed");
+    PBErrCatch(GDataSetErr);
+  }
   VecShort* dim = VecShortCreate(1);
   VecSet(dim, 0, 2);
   if (VecIsEqual(GDSSampleDim(&gdataset), dim) != true) {

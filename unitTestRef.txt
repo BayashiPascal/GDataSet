@@ -1,6 +1,7 @@
 UnitTestGDataSetVecFloatCreateFree OK
-UnitTestGDataSetVecFloatCreateFree OK
+UnitTestGDataSetVecFloatGet OK
 UnitTestGDataSetVecFloatSplitUnsplit OK
 UnitTestGDataSetVecFloatShuffle OK
 UnitTestGDataSetVecFloatStepSampleGetSample OK
 UnitTestGDataSetGenBrushPair OK
+UnitTestSDSIA OK

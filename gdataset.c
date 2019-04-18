@@ -10,8 +10,6 @@
 // ================ Functions implementation ====================
 
 // Create a new GDataSet defined by the file at 'cfgFilePath'
-// The random generator must have been initialized before calling 
-// this function
 GDataSet GDataSetCreateStatic(const char* const cfgFilePath) {
 #if BUILDMODE == 0
   if (cfgFilePath == NULL) {
@@ -128,8 +126,6 @@ void GDataSetFreeStatic(GDataSet* const that) {
 }
 
 // Create a new GDataSetVecFloat defined by the file at 'cfgFilePath'
-// The random generator must have been initialized before calling 
-// this function
 GDataSetVecFloat GDataSetVecFloatCreateStatic(
   const char* const cfgFilePath) {
 #if BUILDMODE == 0

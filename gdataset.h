@@ -95,16 +95,12 @@ typedef struct GDSGenBrushPair {
 // ================ Functions declaration ====================
 
 // Create a new GDataSet defined by the file at 'cfgFilePath'
-// The random generator must have been initialized before calling 
-// this function
 GDataSet GDataSetCreateStatic(const char* const cfgFilePath);
 
 // Free the memory used by a GDataSet
 void GDataSetFreeStatic(GDataSet* const that);
 
 // Create a new GDataSetVecFloat defined by the file at 'cfgFilePath'
-// The random generator must have been initialized before calling 
-// this function
 GDataSetVecFloat GDataSetVecFloatCreateStatic(
   const char* const cfgFilePath);
 
@@ -112,8 +108,6 @@ GDataSetVecFloat GDataSetVecFloatCreateStatic(
 void GDataSetVecFloatFreeStatic(GDataSetVecFloat* const that);
 
 // Create a new GDataSetGenBrushPair defined by the file at 'cfgFilePath'
-// The random generator must have been initialized before calling 
-// this function
 GDataSetGenBrushPair GDataSetGenBrushPairCreateStatic(
   const char* const cfgFilePath);
 
@@ -257,6 +251,18 @@ void GDSGenBrushPairFree(GDSGenBrushPair** const that);
 inline
 #endif 
 const VecShort* _GDSSampleDim(const GDataSet* const that);
+
+// Get the samples of the GDataSet 'that'
+#if BUILDMODE != 0
+inline
+#endif 
+const GSetVecFloat* _GDSVecFloatSamples(
+  const GDataSetVecFloat* const that);
+#if BUILDMODE != 0
+inline
+#endif 
+const GSet* _GDSGenBrushPairSamples(
+  const GDataSetGenBrushPair* const that);
 
 // ================= Polymorphism ==================
 
@@ -416,6 +422,11 @@ const VecShort* _GDSSampleDim(const GDataSet* const that);
   GDataSetVecFloat*: _GDSUnsplit, \
   GDataSetGenBrushPair*: _GDSUnsplit, \
   default: PBErrInvalidPolymorphism)((GDataSet*)DataSet)
+
+#define GDSSamples(DataSet) _Generic(DataSet, \
+  GDataSetVecFloat*: _GDSVecFloatSamples, \
+  GDataSetGenBrushPair*: _GDSGenBrushPairSamples, \
+  default: PBErrInvalidPolymorphism)(DataSet)
 
 
 // ================ Inliner ====================
