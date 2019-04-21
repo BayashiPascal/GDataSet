@@ -210,12 +210,40 @@ void UnitTestGDataSetVecFloatStepSampleGetSample() {
   printf("UnitTestGDataSetVecFloatStepSampleGetSample OK\n");
 }
 
+void UnitTestGDataSetVecFloatCovariance() {
+  srandom(1);
+  char* cfgFilePath = "testGDataSetVecFloatCovariance.json";
+  GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
+  MatFloat* covariance = GDSGetCovarianceMatrix(&gdataset);
+  float v[9] = {
+    6.888888, 6.0, 5.111111, 
+    6.0, 6.0, 6.0, 
+    5.111111, 6.0, 6.888888};
+  VecShort2D i = VecShortCreateStatic2D();
+  VecShort2D dim = VecShortCreateStatic2D();
+  VecSet(&dim, 0, 3);
+  VecSet(&dim, 1, 3);
+  int j = 0;
+  do {
+    if (!ISEQUALF(MatGet(covariance, &i), v[j])) {
+      GDataSetErr->_type = PBErrTypeUnitTestFailed;
+      sprintf(GDataSetErr->_msg, "GDSGetCovarianceMatrix failed");
+      PBErrCatch(GDataSetErr);
+    }
+    ++j;
+  } while (VecStep(&i, &dim));
+  MatFree(&covariance);
+  GDataSetVecFloatFreeStatic(&gdataset);
+    printf("UnitTestGDataSetVecFloatCovariance OK\n");
+}
+
 void UnitTestGDataSetVecFloat() {
   UnitTestGDataSetVecFloatCreateFreeClone();
   UnitTestGDataSetVecFloatGet();
   UnitTestGDataSetVecFloatSplitUnsplit();
   UnitTestGDataSetVecFloatShuffle();
   UnitTestGDataSetVecFloatStepSampleGetSample();
+  UnitTestGDataSetVecFloatCovariance();
 }
 
 void UnitTestGDataSetGenBrushPair() {

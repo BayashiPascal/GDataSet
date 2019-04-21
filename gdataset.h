@@ -275,6 +275,14 @@ VecFloat* GDSGetMean(const GDataSetVecFloat* const that);
 // categories which are reset to one category made of the original data
 GDataSetVecFloat GDSClone(const GDataSetVecFloat* const that);
 
+// Get the covariance matrix of the GDataSetVecFloat 'that'
+MatFloat* GDSGetCovarianceMatrix(const GDataSetVecFloat* const that);
+
+// Get the covariance of the variables at 'indices' in the
+// GDataSetVecFloat 'that'
+float GDSGetCovariance(const GDataSetVecFloat* const that,
+  const VecShort2D* const indices);
+
 // ================= Polymorphism ==================
 
 #define GDSCfgFilePath(DataSet) _Generic(DataSet, \

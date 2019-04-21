@@ -3,5 +3,6 @@ UnitTestGDataSetVecFloatGet OK
 UnitTestGDataSetVecFloatSplitUnsplit OK
 UnitTestGDataSetVecFloatShuffle OK
 UnitTestGDataSetVecFloatStepSampleGetSample OK
+UnitTestGDataSetVecFloatCovariance OK
 UnitTestGDataSetGenBrushPair OK
 UnitTestSDSIA OK

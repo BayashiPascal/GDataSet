@@ -635,4 +635,75 @@ GDataSetVecFloat GDSClone(const GDataSetVecFloat* const that) {
   return dataset;
 }
 
+// Get the covariance matrix of the GDataSetVecFloat 'that'
+MatFloat* GDSGetCovarianceMatrix(const GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Get the dimension of the samples
+  const VecShort* dim = GDSSampleDim(that);
+  // Allocate memory for the covariance matrix;
+  VecShort2D dimMat = VecShortCreateStatic2D();
+  VecSet(&dimMat, 0, VecGet(dim, 0));
+  VecSet(&dimMat, 1, VecGet(dim, 0));
+  MatFloat* res = MatFloatCreate(&dimMat);
+  // Loop on the matrix to set the covariances
+  VecShort2D i = VecShortCreateStatic2D();
+  do {
+    // The matrix is symmetric, avoid calculating twice the same value
+    if (VecGet(&i, 0) > VecGet(&i, 1)) {
+      VecShort2D j = VecShortCreateStatic2D();
+      VecSet(&j, 0, VecGet(&i, 1));
+      VecSet(&j, 1, VecGet(&i, 0));
+      MatSet(res, &i, MatGet(res, &j));
+    } else {
+      float covar = GDSGetCovariance(that, &i); 
+      MatSet(res, &i, covar);
+    }
+  } while(VecStep(&i, &dimMat));
+  // Return the covariance matrix
+  return res;
+}
+
+// Get the covariance of the variables at 'indices' in the
+// GDataSetVecFloat 'that'
+float GDSGetCovariance(const GDataSetVecFloat* const that,
+  const VecShort2D* const indices) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+  if (indices == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'indices' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Declare a variable to memorize the result
+  float res = 0.0;
+  if (GDSGetSize(that) > 0) {
+    // Get the means of the dataset
+    VecFloat* means = GDSGetMean(that);
+    // Calculate the covariance
+    GSetIterForward iter = GSetIterForwardCreateStatic(GDSSamples(that));
+    do {
+      VecFloat* sample = GSetIterGet(&iter);
+      res += (VecGet(sample, VecGet(indices, 0)) - 
+        VecGet(means, VecGet(indices, 0))) *
+        (VecGet(sample, VecGet(indices, 1)) - 
+        VecGet(means, VecGet(indices, 1)));
+    } while (GSetIterStep(&iter));
+    res /= (float)GDSGetSize(that);
+    // Free memory
+    VecFree(&means);
+  }
+  // Return the covariance
+  return res;
+}
 
