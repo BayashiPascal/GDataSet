@@ -6,7 +6,7 @@
 #include "genbrush.h"
 #include "gdataset.h"
 
-void UnitTestGDataSetVecFloatCreateFree() {
+void UnitTestGDataSetVecFloatCreateFreeClone() {
   srandom(1);
   char* cfgFilePath = "testGDataSetVecFloat.json";
   GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
@@ -23,8 +23,24 @@ void UnitTestGDataSetVecFloatCreateFree() {
     sprintf(GDataSetErr->_msg, "GDataSetCreateStatic failed");
     PBErrCatch(GDataSetErr);
   }
+  GDataSetVecFloat clone = GDSClone(&gdataset);
+  if (strcmp(clone._dataSet._cfgFilePath, cfgFilePath) != 0) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSClone failed");
+    PBErrCatch(GDataSetErr);
+  }
+  GDataSet* f = (GDataSet*)(&clone);
+  if (GSetGet(f->_categories, 0) != GSetGet(&(f->_samples), 0) ||
+    GSetGet(f->_categories, 1) != GSetGet(&(f->_samples), 1) ||
+    GSetGet(f->_categories, 2) != GSetGet(&(f->_samples), 2)) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSClone failed");
+    PBErrCatch(GDataSetErr);
+  }
+  
+  GDataSetVecFloatFreeStatic(&clone);
   GDataSetVecFloatFreeStatic(&gdataset);
-  printf("UnitTestGDataSetVecFloatCreateFree OK\n");
+  printf("UnitTestGDataSetVecFloatCreateFreeClone OK\n");
 }
 
 void UnitTestGDataSetVecFloatGet() {
@@ -93,6 +109,35 @@ void UnitTestGDataSetVecFloatGet() {
     PBErrCatch(GDataSetErr);
   }
   VecFree(&dim);
+  VecFloat* mean = GDSGetMean(&gdataset);
+  VecFloat2D checkMean = VecFloatCreateStatic2D();
+  VecSet(&checkMean, 0, 2.0);
+  VecSet(&checkMean, 1, 3.0);
+  if (!VecIsEqual(mean, &checkMean)) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSGetMean failed");
+    PBErrCatch(GDataSetErr);
+  }
+  VecFree(&mean);
+  GDSMeanCenter(&gdataset);
+  VecFloat2D checkMeanCenter[3];
+  for (int i = 0; i < GDSGetSize(&gdataset); ++i) {
+    checkMeanCenter[i] = VecFloatCreateStatic2D();
+    VecSet(checkMeanCenter + i, 0, -2.0 + (float)i * 2.0);
+    VecSet(checkMeanCenter + i, 1, -2.0 + (float)i * 2.0);
+  }
+  GSetIterForward iter = GSetIterForwardCreateStatic(
+    GDSSamples(&gdataset));
+  int i = 0;
+  do {
+    VecFloat* sample = GSetIterGet(&iter);
+    if (!VecIsEqual(sample, checkMeanCenter + i)) {
+      GDataSetErr->_type = PBErrTypeUnitTestFailed;
+      sprintf(GDataSetErr->_msg, "GDSMeanCenter failed");
+      PBErrCatch(GDataSetErr);
+    }
+  } while (GSetIterStep(&iter) && ++i);
+  
   GDataSetVecFloatFreeStatic(&gdataset);
   printf("UnitTestGDataSetVecFloatGet OK\n");
 }
@@ -166,7 +211,7 @@ void UnitTestGDataSetVecFloatStepSampleGetSample() {
 }
 
 void UnitTestGDataSetVecFloat() {
-  UnitTestGDataSetVecFloatCreateFree();
+  UnitTestGDataSetVecFloatCreateFreeClone();
   UnitTestGDataSetVecFloatGet();
   UnitTestGDataSetVecFloatSplitUnsplit();
   UnitTestGDataSetVecFloatShuffle();

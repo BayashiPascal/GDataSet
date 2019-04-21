@@ -1,4 +1,4 @@
-UnitTestGDataSetVecFloatCreateFree OK
+UnitTestGDataSetVecFloatCreateFreeClone OK
 UnitTestGDataSetVecFloatGet OK
 UnitTestGDataSetVecFloatSplitUnsplit OK
 UnitTestGDataSetVecFloatShuffle OK

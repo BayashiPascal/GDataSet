@@ -264,6 +264,17 @@ inline
 const GSet* _GDSGenBrushPairSamples(
   const GDataSetGenBrushPair* const that);
 
+// Center the GDataSet 'that' on its mean
+void GDSMeanCenter(GDataSetVecFloat* const that);
+
+// Get the mean of the GDataSet 'that'
+VecFloat* GDSGetMean(const GDataSetVecFloat* const that);
+
+// Get a clone of the GDataSet 'that'
+// All the data in the GDataSet are cloned except for the splitting
+// categories which are reset to one category made of the original data
+GDataSetVecFloat GDSClone(const GDataSetVecFloat* const that);
+
 // ================= Polymorphism ==================
 
 #define GDSCfgFilePath(DataSet) _Generic(DataSet, \
@@ -425,9 +436,10 @@ const GSet* _GDSGenBrushPairSamples(
 
 #define GDSSamples(DataSet) _Generic(DataSet, \
   GDataSetVecFloat*: _GDSVecFloatSamples, \
+  const GDataSetVecFloat*: _GDSVecFloatSamples, \
   GDataSetGenBrushPair*: _GDSGenBrushPairSamples, \
+  const GDataSetGenBrushPair*: _GDSGenBrushPairSamples, \
   default: PBErrInvalidPolymorphism)(DataSet)
-
 
 // ================ Inliner ====================
 

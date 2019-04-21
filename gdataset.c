@@ -525,3 +525,114 @@ void GDSGenBrushPairFree(GDSGenBrushPair** const that) {
   *that = NULL;
 }
 
+// Center the GDataSet 'that' on its mean
+void GDSMeanCenter(GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Get the mean of the dataset
+  VecFloat* mean = GDSGetMean(that);
+  // Translate all the data by the mean of the data set
+  if (GDSGetSize(that) > 0) {
+    GSetIterForward iter = GSetIterForwardCreateStatic(GDSSamples(that));
+    do {
+      VecFloat* sample = GSetIterGet(&iter);
+      VecOp(sample, 1.0, mean, -1.0);
+    } while (GSetIterStep(&iter));
+  }
+  // Free memory
+  VecFree(&mean);
+}
+
+// Get the mean of the GDataSet 'that'
+VecFloat* GDSGetMean(const GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Get the dimension of the samples
+  const VecShort* dim = GDSSampleDim(that);
+  // Create a vector to calculate the mean
+  VecFloat* mean = VecFloatCreate(VecGet(dim, 0));
+  // Calculate the mean
+  if (GDSGetSize(that) > 0) {
+    GSetIterForward iter = 
+      GSetIterForwardCreateStatic(GDSSamples(that));
+    do {
+      VecFloat* v = GSetIterGet(&iter);
+      VecOp(mean, 1.0, v, 1.0);
+    } while(GSetIterStep(&iter));
+    VecScale(mean, 1.0 / (float)GDSGetSize(that));
+  }
+  // Return the result
+  return mean;
+}
+
+// Get a clone of the GDataSet 'that'
+// All the data in the GDataSet are cloned except for the splitting
+// categories which are reset to one category made of the original data
+GDataSetVecFloat GDSClone(const GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Declare the result dataset
+  GDataSetVecFloat dataset;
+  // Create a pointer to the GDataSet for convenience
+  GDataSet* tho = &(dataset._dataSet);
+  // Clone or initialize the properties
+  tho->_json = NULL;
+  tho->_cfgFilePath = PBErrMalloc(GDataSetErr, 
+    sizeof(char) * (1 + strlen(that->_dataSet._cfgFilePath)));
+  strcpy(tho->_cfgFilePath, that->_dataSet._cfgFilePath);
+  tho->_name = PBErrMalloc(GDataSetErr, 
+    sizeof(char) * (1 + strlen(that->_dataSet._name)));
+  strcpy(tho->_name, that->_dataSet._name);
+  tho->_desc = PBErrMalloc(GDataSetErr, 
+    sizeof(char) * (1 + strlen(that->_dataSet._desc)));
+  strcpy(tho->_desc, that->_dataSet._desc);
+  tho->_type = that->_dataSet._type;
+  tho->_nbSample = that->_dataSet._nbSample;
+  tho->_sampleDim = VecClone(that->_dataSet._sampleDim);
+  tho->_samples = GSetCreateStatic();
+  if (GDSGetSize(that) > 0) {
+    GSetIterForward iter = GSetIterForwardCreateStatic(GDSSamples(that));
+    do {
+      VecFloat* v = GSetIterGet(&iter);
+      GSetAppend(&(tho->_samples), VecClone(v));
+    } while (GSetIterStep(&iter));
+  }
+  tho->_split = NULL;
+  tho->_categories = NULL;
+  tho->_iterators = NULL;
+  tho->_split = VecShortCreate(1);
+  VecSet(tho->_split, 0, tho->_nbSample);
+  tho->_categories = PBErrMalloc(GDataSetErr, sizeof(GSet));
+  tho->_categories[0] = GSetCreateStatic();
+  if (GDSGetSize(that) > 0) {
+    GSetIterForward iter = 
+      GSetIterForwardCreateStatic(&(tho->_samples));
+    do {
+      void* sample = GSetIterGet(&iter);
+      GSetAppend(tho->_categories, sample);
+    } while (GSetIterStep(&iter));
+  }
+  tho->_iterators = 
+    PBErrMalloc(GDataSetErr, sizeof(GSetIterForward));
+  tho->_iterators[0] = 
+    GSetIterForwardCreateStatic(tho->_categories);
+  // Return the result dataset
+  return dataset;
+}
+
+
