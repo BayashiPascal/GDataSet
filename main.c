@@ -234,7 +234,35 @@ void UnitTestGDataSetVecFloatCovariance() {
   } while (VecStep(&i, &dim));
   MatFree(&covariance);
   GDataSetVecFloatFreeStatic(&gdataset);
-    printf("UnitTestGDataSetVecFloatCovariance OK\n");
+  printf("UnitTestGDataSetVecFloatCovariance OK\n");
+}
+
+void UnitTestGDataSetVecFloatNormalize() {
+  srandom(1);
+  char* cfgFilePath = "testGDataSetVecFloatNormalize.json";
+  GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
+  GDSNormalize(&gdataset);
+  GSetIterForward iter = 
+    GSetIterForwardCreateStatic(GDSSamples(&gdataset));
+  float check[9] = {
+      0.267261,0.534522,0.801784,
+      0.683763,0.569803,0.455842,
+      0.502571,0.574367,0.646162
+    };
+  int i = 0;
+  do {
+    VecFloat* v = GSetIterGet(&iter);
+    if (!ISEQUALF(VecGet(v, 0), check[i * 3]) ||
+      !ISEQUALF(VecGet(v, 1), check[i * 3 + 1]) ||
+      !ISEQUALF(VecGet(v, 2), check[i * 3 + 2])) {
+      GDataSetErr->_type = PBErrTypeUnitTestFailed;
+      sprintf(GDataSetErr->_msg, "GDSNormalize failed");
+      PBErrCatch(GDataSetErr);
+    }
+    ++i;
+  } while(GSetIterStep(&iter));
+  GDataSetVecFloatFreeStatic(&gdataset);
+  printf("UnitTestGDataSetVecFloatNormalize OK\n");
 }
 
 void UnitTestGDataSetVecFloat() {
@@ -244,6 +272,7 @@ void UnitTestGDataSetVecFloat() {
   UnitTestGDataSetVecFloatShuffle();
   UnitTestGDataSetVecFloatStepSampleGetSample();
   UnitTestGDataSetVecFloatCovariance();
+  UnitTestGDataSetVecFloatNormalize();
 }
 
 void UnitTestGDataSetGenBrushPair() {

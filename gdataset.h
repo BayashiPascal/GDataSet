@@ -267,6 +267,9 @@ const GSet* _GDSGenBrushPairSamples(
 // Center the GDataSet 'that' on its mean
 void GDSMeanCenter(GDataSetVecFloat* const that);
 
+// Normalize the GDataSet 'that', ie normalize each of its vectors
+void GDSNormalize(GDataSetVecFloat* const that);
+
 // Get the mean of the GDataSet 'that'
 VecFloat* GDSGetMean(const GDataSetVecFloat* const that);
 

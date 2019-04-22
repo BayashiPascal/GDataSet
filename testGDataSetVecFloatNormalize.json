@@ -1,0 +1,24 @@
+{
+  "dataSet": "testGDataSet",
+  "dataSetType": "0",
+  "desc": "UnitTestGDataSetVecFloatNormalize",
+  "dim": {
+    "_dim":"1",
+    "_val":["3"]
+  },
+  "nbSample": "3",
+  "samples": [
+    {
+      "_dim":"3",
+      "_val":["1.0","2.0","3.0"]
+    },
+    {
+      "_dim":"3",
+      "_val":["6.0","5.0","4.0"]
+    },
+    {
+      "_dim":"3",
+      "_val":["7.0","8.0","9.0"]
+    }
+  ]
+}

@@ -8,6 +8,7 @@ It offers the following functionalities:\\
 \item splitting the data set into user defined categories (e.g. training, validation, test)
 \item shuffling the data set
 \item looping through the samples of the data set. 
+\item centering on the mean, normalizing, getting the covariance of two variables, getting the covariance matrix for dataset of type VecFloat
 \end{itemize}
 
 It provides an unique interface to several implementation supporting various types of dataset. Supported types are: VecFloat and pair of GenBrush (img/mask).\\
@@ -52,9 +53,24 @@ The GDataSet library uses the \begin{ttfamily}PBErr\end{ttfamily}, \begin{ttfami
 
 \subsection{VecFloat}
 
+testGDataSetVecFloat.json:
 \begin{scriptsize}
 \begin{ttfamily}
 \verbatiminput{../testGDataSetVecFloat.json}
+\end{ttfamily}
+\end{scriptsize}
+
+testGDataSetVecFloatCovariance.json:
+\begin{scriptsize}
+\begin{ttfamily}
+\verbatiminput{../testGDataSetVecFloatCovariance.json}
+\end{ttfamily}
+\end{scriptsize}
+
+testGDataSetVecFloat.json:
+\begin{scriptsize}
+\begin{ttfamily}
+\verbatiminput{../testGDataSetVecFloatNormalize.json}
 \end{ttfamily}
 \end{scriptsize}
 

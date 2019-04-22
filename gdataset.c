@@ -548,6 +548,25 @@ void GDSMeanCenter(GDataSetVecFloat* const that) {
   VecFree(&mean);
 }
 
+// Normalize the GDataSet 'that', ie normalize each of its vectors
+void GDSNormalize(GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Normalize all the data of the data set
+  if (GDSGetSize(that) > 0) {
+    GSetIterForward iter = GSetIterForwardCreateStatic(GDSSamples(that));
+    do {
+      VecFloat* sample = GSetIterGet(&iter);
+      VecNormalise(sample);
+    } while (GSetIterStep(&iter));
+  }
+}
+
 // Get the mean of the GDataSet 'that'
 VecFloat* GDSGetMean(const GDataSetVecFloat* const that) {
 #if BUILDMODE == 0
