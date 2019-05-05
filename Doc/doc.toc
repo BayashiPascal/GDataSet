@@ -1,10 +1,10 @@
 \contentsline {section}{\numberline {1}Interface}{2}
 \contentsline {section}{\numberline {2}Code}{9}
 \contentsline {subsection}{\numberline {2.1}gdataset.c}{9}
-\contentsline {subsection}{\numberline {2.2}gdataset-inline.c}{21}
-\contentsline {section}{\numberline {3}Makefile}{27}
-\contentsline {section}{\numberline {4}Dataset configuration file}{28}
-\contentsline {subsection}{\numberline {4.1}VecFloat}{28}
-\contentsline {subsection}{\numberline {4.2}Pair of GenBrush}{29}
-\contentsline {section}{\numberline {5}Unit tests}{30}
-\contentsline {section}{\numberline {6}Unit test output}{35}
+\contentsline {subsection}{\numberline {2.2}gdataset-inline.c}{23}
+\contentsline {section}{\numberline {3}Makefile}{29}
+\contentsline {section}{\numberline {4}Dataset configuration file}{29}
+\contentsline {subsection}{\numberline {4.1}VecFloat}{29}
+\contentsline {subsection}{\numberline {4.2}Pair of GenBrush}{31}
+\contentsline {section}{\numberline {5}Unit tests}{31}
+\contentsline {section}{\numberline {6}Unit test output}{37}

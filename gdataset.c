@@ -9,102 +9,127 @@
 
 // ================ Functions implementation ====================
 
-// Create a new GDataSet defined by the file at 'cfgFilePath'
-GDataSet GDataSetCreateStatic(const char* const cfgFilePath) {
+// Create a new GDataSet of type 'type'
+GDataSet GDataSetCreateStatic(GDataSetType type) {
+  // Declare the new GDataSet
+  GDataSet that;
+  // Set the properties
+  that._name = NULL;
+  that._desc = NULL;
+  that._type = type;
+  that._nbSample = 0;
+  that._samples = GSetCreateStatic();
+  that._sampleDim = NULL; 
+  that._split = NULL;
+  that._categories = NULL;
+  that._iterators = NULL;
+  // Return the new GDataSet
+  return that;
+}
+
+// Load the GDataSet 'that' from the stream 'stream'
+// Return true if the GDataSet could be loaded, false else
+bool GDataSetLoad(GDataSet* that, FILE* const stream) {
 #if BUILDMODE == 0
-  if (cfgFilePath == NULL) {
+  if (that == NULL) {
     GDataSetErr->_type = PBErrTypeNullPointer;
-    sprintf(PBImgAnalysisErr->_msg, "'cfgFilePath' is null");
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+  if (stream == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'stream' is null");
     PBErrCatch(PBImgAnalysisErr);
   }
 #endif
-  // Declare the new GDataSet
-  GDataSet that;
-  // Copy the file path
-  that._cfgFilePath = PBErrMalloc(GDataSetErr, strlen(cfgFilePath) + 1);
-  strcpy(that._cfgFilePath, cfgFilePath);
-  // Open the description file
-  FILE* cfgFile = fopen(cfgFilePath, "r");
-  // If the description file doesn't exist
-  if (cfgFile == NULL) {
-    GDataSetErr->_type = PBErrTypeInvalidArg;
-    sprintf(GDataSetErr->_msg, "Can't open the configuration file %s",
-      cfgFilePath);
-    PBErrCatch(GDataSetErr);
-  }
-  // Load the encoded data
-  that._json = JSONCreate();
   // Load the whole encoded data
-  if (JSONLoad(that._json, cfgFile) == false) {
-    printf("%s\n", GDataSetErr->_msg);
-    GDataSetErr->_type = PBErrTypeInvalidData;
-    sprintf(GDataSetErr->_msg, "Can't load the configuration file");
-    PBErrCatch(GDataSetErr);
+  JSONNode* json = JSONCreate();
+  if (!JSONLoad(json, stream)) {
+    return false;
   }
-  // Decode dataSet
-  JSONNode* prop = JSONProperty(that._json, "dataSet");
-  if (prop == NULL) {
-    GDataSetErr->_type = PBErrTypeInvalidData;
-    sprintf(GDataSetErr->_msg, 
-      "Invalid description file (dataSet missing)");
-    PBErrCatch(GDataSetErr);
+  // Decode the JSON
+  if (!GDataSetDecodeAsJSON(that, json)) {
+    return false;
   }
-  JSONNode* val = JSONValue(prop, 0);
-  that._name = PBErrMalloc(GDataSetErr, 
-    sizeof(char) * (strlen(JSONLabel(val)) + 1));
-  strcpy(that._name, JSONLabel(val));
-  // Decode desc
-  prop = JSONProperty(that._json, "desc");
-  if (prop == NULL) {
-    GDataSetErr->_type = PBErrTypeInvalidData;
-    sprintf(GDataSetErr->_msg, 
-      "Invalid description file (desc missing)");
-    PBErrCatch(GDataSetErr);
+  // Free memory
+  JSONFree(&json);
+  // Return the success code
+  return true;
+}
+
+// Function which decode from JSON encoding 'json' to 'that'
+bool GDataSetDecodeAsJSON(GDataSet* that, const JSONNode* const json) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    PBMathErr->_type = PBErrTypeNullPointer;
+    sprintf(PBMathErr->_msg, "'that' is null");
+    PBErrCatch(PBMathErr);
   }
-  val = JSONValue(prop, 0);
-  that._desc = PBErrMalloc(GDataSetErr, 
-    sizeof(char) * (strlen(JSONLabel(val)) + 1));
-  strcpy(that._desc, JSONLabel(val));
+  if (json == NULL) {
+    PBMathErr->_type = PBErrTypeNullPointer;
+    sprintf(PBMathErr->_msg, "'json' is null");
+    PBErrCatch(PBMathErr);
+  }
+#endif
+  // Free memory
+  GDataSetFreeStatic(that);
   // Decode dataSetType
-  prop = JSONProperty(that._json, "dataSetType");
+  JSONNode* prop = JSONProperty(json, "dataSetType");
   if (prop == NULL) {
     GDataSetErr->_type = PBErrTypeInvalidData;
     sprintf(GDataSetErr->_msg, 
       "Invalid description file (dataSetType missing)");
-    PBErrCatch(GDataSetErr);
+    return false;
+  }
+  JSONNode* val = JSONValue(prop, 0);
+  // Create the new data set
+  *that = GDataSetCreateStatic(atoi(JSONLabel(val)));
+  // Decode dataSet
+  prop = JSONProperty(json, "dataSet");
+  if (prop == NULL) {
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, 
+      "Invalid description file (dataSet missing)");
+    return false;
   }
   val = JSONValue(prop, 0);
-  that._type = atoi(JSONLabel(val));
+  that->_name = PBErrMalloc(GDataSetErr, 
+    sizeof(char) * (strlen(JSONLabel(val)) + 1));
+  strcpy(that->_name, JSONLabel(val));
+  // Decode desc
+  prop = JSONProperty(json, "desc");
+  if (prop == NULL) {
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, 
+      "Invalid description file (desc missing)");
+    return false;
+  }
+  val = JSONValue(prop, 0);
+  that->_desc = PBErrMalloc(GDataSetErr, 
+    sizeof(char) * (strlen(JSONLabel(val)) + 1));
+  strcpy(that->_desc, JSONLabel(val));
   // Decode dim
-  prop = JSONProperty(that._json, "dim");
+  prop = JSONProperty(json, "dim");
   if (prop == NULL) {
     GDataSetErr->_type = PBErrTypeInvalidData;
     sprintf(GDataSetErr->_msg, 
       "Invalid description file (dim missing)");
-    PBErrCatch(GDataSetErr);
+    return false;
   }
-  that._sampleDim = NULL;
-  VecDecodeAsJSON(&(that._sampleDim), prop);
+  that->_sampleDim = NULL;
+  VecDecodeAsJSON(&(that->_sampleDim), prop);
   // Decode nbSample
-  prop = JSONProperty(that._json, "nbSample");
+  prop = JSONProperty(json, "nbSample");
   if (prop == NULL) {
     GDataSetErr->_type = PBErrTypeInvalidData;
     sprintf(GDataSetErr->_msg, 
       "Invalid description file (nbSample missing)");
-    PBErrCatch(GDataSetErr);
+    return false;
   }
   val = JSONValue(prop, 0);
-  that._nbSample = atoi(JSONLabel(val));
-  // Init the splits and iterators
-  that._split = NULL;
-  that._categories = NULL;
-  that._iterators = NULL;
-  
-  // Close the description file
-  fclose(cfgFile);
-  
-  // Return the new GDataSet
-  return that;
+  that->_nbSample = atoi(JSONLabel(val));
+  // Return the success code
+  return true;
 }
 
 // Free the memory used by a GDataSet
@@ -112,21 +137,25 @@ void GDataSetFreeStatic(GDataSet* const that) {
   if (that == NULL)
     return;
   // Free memory
-  JSONFree(&(that->_json));
-  free(that->_name);
-  free(that->_desc);
-  free(that->_cfgFilePath);
+  if (that->_name)
+    free(that->_name);
+  if (that->_desc)
+    free(that->_desc);
   for (int iCat = GDSGetNbCat(that); iCat--;) {
     GSetFlush(that->_categories + iCat);
   }
-  free(that->_categories);
-  free(that->_iterators);
-  VecFree(&(that->_split));
-  VecFree(&(that->_sampleDim));
+  if (that->_categories)
+    free(that->_categories);
+  if (that->_iterators)
+    free(that->_iterators);
+  if (that->_split)
+    VecFree(&(that->_split));
+  if (that->_sampleDim)
+    VecFree(&(that->_sampleDim));
 }
 
 // Create a new GDataSetVecFloat defined by the file at 'cfgFilePath'
-GDataSetVecFloat GDataSetVecFloatCreateStatic(
+GDataSetVecFloat GDataSetVecFloatCreateStaticFromFile(
   const char* const cfgFilePath) {
 #if BUILDMODE == 0
   if (cfgFilePath == NULL) {
@@ -137,8 +166,31 @@ GDataSetVecFloat GDataSetVecFloatCreateStatic(
 #endif
   // Declare the new GDataSetVecFloat
   GDataSetVecFloat that;
-  // Create the generic GDataSet
-  that._dataSet = GDataSetCreateStatic(cfgFilePath);
+  *(GDataSet*)&that = GDataSetCreateStatic(GDataSetType_VecFloat);
+  // Open the file
+  FILE* stream = fopen(cfgFilePath, "r");
+  // If the description file doesn't exist
+  if (stream == NULL) {
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(GDataSetErr->_msg, "Can't open the configuration file %s",
+      cfgFilePath);
+    PBErrCatch(GDataSetErr);
+  }
+  // Load the whole encoded data
+  JSONNode* json = JSONCreate();
+  if (!JSONLoad(json, stream)) {
+    printf("%s\n", GDataSetErr->_msg);
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, "Can't load the configuration file");
+    PBErrCatch(GDataSetErr);
+  }
+  // Decode the JSON data for the generic GDataSet
+  if (!GDataSetDecodeAsJSON((GDataSet*)&that, json)) {
+    printf("%s\n", GDataSetErr->_msg);
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, "Can't decode the configuration file");
+    PBErrCatch(GDataSetErr);
+  }
   // Check the type
   if (GDSGetType(&that) != GDataSetType_VecFloat) {
     GDataSetErr->_type = PBErrTypeInvalidData;
@@ -151,44 +203,90 @@ GDataSetVecFloat GDataSetVecFloatCreateStatic(
     sprintf(GDataSetErr->_msg, "Invalid sample dimension");
     PBErrCatch(GDataSetErr);
   }
+  // Decode the properties of the GDataSetVecFloat
+  if (!GDataSetVecFloatDecodeAsJSON(&that, json)) {
+    printf("%s\n", GDataSetErr->_msg);
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, "Can't decode the configuration file");
+    PBErrCatch(GDataSetErr);
+  }
+  // Free memory
+  JSONFree(&json);
+  fclose(stream);
+  // Return the new GDataSetVecFloat
+  return that;
+}
+
+// Function which decode from JSON encoding 'json' to 'that'
+bool GDataSetVecFloatDecodeAsJSON(GDataSetVecFloat* that, 
+  const JSONNode* const json) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    PBMathErr->_type = PBErrTypeNullPointer;
+    sprintf(PBMathErr->_msg, "'that' is null");
+    PBErrCatch(PBMathErr);
+  }
+  if (json == NULL) {
+    PBMathErr->_type = PBErrTypeNullPointer;
+    sprintf(PBMathErr->_msg, "'json' is null");
+    PBErrCatch(PBMathErr);
+  }
+#endif
   // Load the samples
-  JSONNode* prop = JSONProperty(that._dataSet._json, "samples");
+  JSONNode* prop = JSONProperty(json, "samples");
   if (prop == NULL) {
     GDataSetErr->_type = PBErrTypeInvalidData;
     sprintf(GDataSetErr->_msg, 
       "Invalid description file (samples missing)");
-    PBErrCatch(GDataSetErr);
+    return false;
   }
-  if (JSONGetNbValue(prop) != that._dataSet._nbSample) {
+  if (JSONGetNbValue(prop) != that->_dataSet._nbSample) {
     GDataSetErr->_type = PBErrTypeInvalidData;
     sprintf(GDataSetErr->_msg, 
       "Invalid description file (samples's number != nbSample)");
-    PBErrCatch(GDataSetErr);
+    return false;
   }
-  that._dataSet._samples = GSetCreateStatic();
-  for (int iSample = 0; iSample < that._dataSet._nbSample; ++iSample) {
+  that->_dataSet._samples = GSetCreateStatic();
+  for (int iSample = 0; iSample < GDSGetSize(that); ++iSample) {
     JSONNode* val = JSONValue(prop, iSample);
     VecFloat* v = NULL;
     VecDecodeAsJSON(&v, val);
-    GSetAppend(&(that._dataSet._samples), v);
+    GSetAppend((GSet*)GDSSamples(that), v);
   }
   // Create the initial category
-  that._dataSet._split = VecShortCreate(1);
-  VecSet(that._dataSet._split, 0, that._dataSet._nbSample);
-  that._dataSet._categories = PBErrMalloc(GDataSetErr, sizeof(GSet));
-  that._dataSet._categories[0] = GSetCreateStatic();
-  GSetIterForward iter = 
-    GSetIterForwardCreateStatic(&(that._dataSet._samples));
+  GDSResetCategories((GDataSet*)that);
+  // Return the success code
+  return true;
+}
+
+// Reset the categories of the GDataSet 'that' to one unshuffled
+// category
+void GDSResetCategories(GDataSet* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    PBMathErr->_type = PBErrTypeNullPointer;
+    sprintf(PBMathErr->_msg, "'that' is null");
+    PBErrCatch(PBMathErr);
+  }
+#endif
+  if (that->_split) 
+    VecFree(&(that->_split));
+  that->_split = VecShortCreate(1);
+  VecSet(that->_split, 0, GDSGetSize(that));
+  if (that->_categories) {
+    for (int iCat = GDSGetNbCat(that); iCat--;) {
+      GSetFlush(that->_categories + iCat);
+    }
+    free(that->_categories);
+  }
+  that->_categories = GSetCreate();
+  GSetIterForward iter = GSetIterForwardCreateStatic(GDSSamples(that));
   do {
     void* sample = GSetIterGet(&iter);
-    GSetAppend(that._dataSet._categories, sample);
+    GSetAppend(that->_categories, sample);
   } while (GSetIterStep(&iter));
-  that._dataSet._iterators = 
-    PBErrMalloc(GDataSetErr, sizeof(GSetIterForward));
-  that._dataSet._iterators[0] = 
-    GSetIterForwardCreateStatic(that._dataSet._categories);
-  // Return the new GDataSetVecFloat
-  return that;
+  that->_iterators = PBErrMalloc(GDataSetErr, sizeof(GSetIterForward));
+  that->_iterators[0] = GSetIterForwardCreateStatic(that->_categories);
 }
 
 // Free the memory used by a GDataSetVecFloat
@@ -206,7 +304,7 @@ void GDataSetVecFloatFreeStatic(GDataSetVecFloat* const that) {
 // Create a new GDataSetGenBrushPair defined by the file at 'cfgFilePath'
 // The random generator must have been initialized before calling 
 // this function
-GDataSetGenBrushPair GDataSetGenBrushPairCreateStatic(
+GDataSetGenBrushPair GDataSetGenBrushPairCreateStaticFromFile(
   const char* const cfgFilePath) {
 #if BUILDMODE == 0
   if (cfgFilePath == NULL) {
@@ -217,8 +315,34 @@ GDataSetGenBrushPair GDataSetGenBrushPairCreateStatic(
 #endif
   // Declare the new GDataSetVecFloat
   GDataSetGenBrushPair that;
-  // Create the generic GDataSet
-  that._dataSet = GDataSetCreateStatic(cfgFilePath);
+  *(GDataSet*)&that = GDataSetCreateStatic(GDataSetType_GenBrushPair);
+  // Copy the file path
+  that._cfgFilePath = PBErrMalloc(GDataSetErr, strlen(cfgFilePath) + 1);
+  strcpy(that._cfgFilePath, cfgFilePath);
+  // Open the file
+  FILE* stream = fopen(cfgFilePath, "r");
+  // If the description file doesn't exist
+  if (stream == NULL) {
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(GDataSetErr->_msg, "Can't open the configuration file %s",
+      cfgFilePath);
+    PBErrCatch(GDataSetErr);
+  }
+  // Load the whole encoded data
+  JSONNode* json = JSONCreate();
+  if (!JSONLoad(json, stream)) {
+    printf("%s\n", GDataSetErr->_msg);
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, "Can't load the configuration file");
+    PBErrCatch(GDataSetErr);
+  }
+  // Decode the JSON data for the generic GDataSet
+  if (!GDataSetDecodeAsJSON((GDataSet*)&that, json)) {
+    printf("%s\n", GDataSetErr->_msg);
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, "Can't decode the configuration file");
+    PBErrCatch(GDataSetErr);
+  }
   // Check the type
   if (GDSGetType(&that) != GDataSetType_GenBrushPair) {
     GDataSetErr->_type = PBErrTypeInvalidData;
@@ -232,38 +356,67 @@ GDataSetGenBrushPair GDataSetGenBrushPairCreateStatic(
       VecGetDim(GDSSampleDim(&that)));
     PBErrCatch(GDataSetErr);
   }
+  // Decode the properties of the GDataSetGenBrushPair
+  if (!GDataSetGenBrushPairDecodeAsJSON(&that, json)) {
+    printf("%s\n", GDataSetErr->_msg);
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, "Can't decode the configuration file");
+    PBErrCatch(GDataSetErr);
+  }
+  // Free memory
+  JSONFree(&json);
+  fclose(stream);
+  // Return the new GDataSetGenBrushPair
+  return that;
+}
+
+// Function which decode from JSON encoding 'json' to 'that'
+bool GDataSetGenBrushPairDecodeAsJSON(GDataSetGenBrushPair* that, 
+  const JSONNode* const json) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    PBMathErr->_type = PBErrTypeNullPointer;
+    sprintf(PBMathErr->_msg, "'that' is null");
+    PBErrCatch(PBMathErr);
+  }
+  if (json == NULL) {
+    PBMathErr->_type = PBErrTypeNullPointer;
+    sprintf(PBMathErr->_msg, "'json' is null");
+    PBErrCatch(PBMathErr);
+  }
+#endif
   // Get the nb of mask
-  JSONNode* prop = JSONProperty(that._dataSet._json, "nbMask");
+  JSONNode* prop = JSONProperty(json, "nbMask");
   if (prop == NULL) {
     GDataSetErr->_type = PBErrTypeInvalidData;
     sprintf(GDataSetErr->_msg, 
       "Invalid description file (nbMask missing)");
     PBErrCatch(GDataSetErr);
   }
-  that._nbMask = atoi(JSONLabel(JSONValue(prop, 0)));
-  if (that._nbMask >= GDS_NBMAXMASK) {
+  that->_nbMask = atoi(JSONLabel(JSONValue(prop, 0)));
+  if (that->_nbMask >= GDS_NBMAXMASK) {
     GDataSetErr->_type = PBErrTypeInvalidData;
     sprintf(GDataSetErr->_msg, 
       "Invalid description file (invalid nbMask %d>=%d)", 
-      that._nbMask, GDS_NBMAXMASK);
+      that->_nbMask, GDS_NBMAXMASK);
     PBErrCatch(GDataSetErr);
   }
   // Load the samples
-  prop = JSONProperty(that._dataSet._json, "samples");
+  prop = JSONProperty(json, "samples");
   if (prop == NULL) {
     GDataSetErr->_type = PBErrTypeInvalidData;
     sprintf(GDataSetErr->_msg, 
       "Invalid description file (samples missing)");
     PBErrCatch(GDataSetErr);
   }
-  if (JSONGetNbValue(prop) != that._dataSet._nbSample) {
+  if (JSONGetNbValue(prop) != GDSGetSize(that)) {
     GDataSetErr->_type = PBErrTypeInvalidData;
     sprintf(GDataSetErr->_msg, 
       "Invalid description file (samples's number != nbSample)");
     PBErrCatch(GDataSetErr);
   }
-  that._dataSet._samples = GSetCreateStatic();
-  for (int iSample = 0; iSample < that._dataSet._nbSample; ++iSample) {
+  that->_dataSet._samples = GSetCreateStatic();
+  for (int iSample = 0; iSample < GDSGetSize(that); ++iSample) {
     JSONNode* val = JSONValue(prop, iSample);
     // Allocate memory for the pair image/mask
     GDSFilePathPair* pair = PBErrMalloc(GDataSetErr, 
@@ -291,30 +444,17 @@ GDataSetGenBrushPair GDataSetGenBrushPairCreateStatic(
         "Invalid description file (samples.mask missing)");
       PBErrCatch(GDataSetErr);
     }
-    for (int iMask = 0; iMask < that._nbMask; ++iMask) {
+    for (int iMask = 0; iMask < that->_nbMask; ++iMask) {
       subVal = JSONValue(subProp, iMask);
       pair->_path[1 + iMask] = PBErrMalloc(GDataSetErr, 
         sizeof(char) * (strlen(JSONLabel(subVal)) + 1));
       strcpy(pair->_path[1 + iMask], JSONLabel(subVal));
     }
     // Add the pair to the samples
-    GSetAppend(&(that._dataSet._samples), pair);
+    GSetAppend((GSet*)GDSSamples(that), pair);
   }
   // Create the initial category
-  that._dataSet._split = VecShortCreate(1);
-  VecSet(that._dataSet._split, 0, that._dataSet._nbSample);
-  that._dataSet._categories = PBErrMalloc(GDataSetErr, sizeof(GSet));
-  that._dataSet._categories[0] = GSetCreateStatic();
-  GSetIterForward iter = 
-    GSetIterForwardCreateStatic(&(that._dataSet._samples));
-  do {
-    void* sample = GSetIterGet(&iter);
-    GSetAppend(that._dataSet._categories, sample);
-  } while (GSetIterStep(&iter));
-  that._dataSet._iterators = 
-    PBErrMalloc(GDataSetErr, sizeof(GSetIterForward));
-  that._dataSet._iterators[0] = 
-    GSetIterForwardCreateStatic(that._dataSet._categories);
+  GDSResetCategories((GDataSet*)that);
   // Return the new GDataSetVecFloat
   return that;
 }
@@ -325,6 +465,8 @@ void GDataSetGenBrushPairFreeStatic(GDataSetGenBrushPair* const that) {
     return;
   // Free memory
   GDataSetFreeStatic((GDataSet*)that);
+  if (that->_cfgFilePath)
+    free(that->_cfgFilePath);
   while (GSetNbElem(&(((GDataSet*)that)->_samples)) > 0) {
     GDSFilePathPair* sample = GSetPop(&(((GDataSet*)that)->_samples));
     GDSFilePathPairFree(&sample);
@@ -474,7 +616,7 @@ GDSGenBrushPair* GDSGetSampleGenBrushPair(
     sizeof(GDSGenBrushPair));
   for (int iMask = 0; iMask < GDS_NBMAXMASK; ++iMask)
     pairSample->_mask[iMask] = NULL;
-  char* root = GDSGetCfgFolderPath(that);
+  char* root = PBFSGetRootPath(that->_cfgFilePath);
   char* path = PBFSJoinPath(root, pairFile->_path[0]);
   GenBrush* gb = GBCreateFromFile(path);
   // Rescale the sample if needed to always provide to the user
@@ -610,10 +752,6 @@ GDataSetVecFloat GDSClone(const GDataSetVecFloat* const that) {
   // Create a pointer to the GDataSet for convenience
   GDataSet* tho = &(dataset._dataSet);
   // Clone or initialize the properties
-  tho->_json = NULL;
-  tho->_cfgFilePath = PBErrMalloc(GDataSetErr, 
-    sizeof(char) * (1 + strlen(that->_dataSet._cfgFilePath)));
-  strcpy(tho->_cfgFilePath, that->_dataSet._cfgFilePath);
   tho->_name = PBErrMalloc(GDataSetErr, 
     sizeof(char) * (1 + strlen(that->_dataSet._name)));
   strcpy(tho->_name, that->_dataSet._name);

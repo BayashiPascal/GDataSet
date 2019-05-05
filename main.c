@@ -9,12 +9,8 @@
 void UnitTestGDataSetVecFloatCreateFreeClone() {
   srandom(1);
   char* cfgFilePath = "testGDataSetVecFloat.json";
-  GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
-  if (strcmp(gdataset._dataSet._cfgFilePath, cfgFilePath) != 0) {
-    GDataSetErr->_type = PBErrTypeUnitTestFailed;
-    sprintf(GDataSetErr->_msg, "GDataSetCreateStatic failed");
-    PBErrCatch(GDataSetErr);
-  }
+  GDataSetVecFloat gdataset = 
+    GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
   GDataSet* g = (GDataSet*)(&gdataset);
   if (GSetGet(g->_categories, 0) != GSetGet(&(g->_samples), 0) ||
     GSetGet(g->_categories, 1) != GSetGet(&(g->_samples), 1) ||
@@ -24,11 +20,6 @@ void UnitTestGDataSetVecFloatCreateFreeClone() {
     PBErrCatch(GDataSetErr);
   }
   GDataSetVecFloat clone = GDSClone(&gdataset);
-  if (strcmp(clone._dataSet._cfgFilePath, cfgFilePath) != 0) {
-    GDataSetErr->_type = PBErrTypeUnitTestFailed;
-    sprintf(GDataSetErr->_msg, "GDSClone failed");
-    PBErrCatch(GDataSetErr);
-  }
   GDataSet* f = (GDataSet*)(&clone);
   if (GSetGet(f->_categories, 0) != GSetGet(&(f->_samples), 0) ||
     GSetGet(f->_categories, 1) != GSetGet(&(f->_samples), 1) ||
@@ -46,26 +37,8 @@ void UnitTestGDataSetVecFloatCreateFreeClone() {
 void UnitTestGDataSetVecFloatGet() {
   srandom(1);
   char* cfgFilePath = "testGDataSetVecFloat.json";
-  GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
-  if (strcmp(GDSCfgFilePath(&gdataset), cfgFilePath) != 0) {
-    GDataSetErr->_type = PBErrTypeUnitTestFailed;
-    sprintf(GDataSetErr->_msg, "GDSCfgFilePath failed");
-    PBErrCatch(GDataSetErr);
-  }
-  char* str = GDSGetCfgFilePath(&gdataset);
-  if (strcmp(str, cfgFilePath) != 0) {
-    GDataSetErr->_type = PBErrTypeUnitTestFailed;
-    sprintf(GDataSetErr->_msg, "GDSGetCfgFilePath failed");
-    PBErrCatch(GDataSetErr);
-  }
-  free(str);
-  str = GDSGetCfgFolderPath(&gdataset);
-  if (strcmp(str, "") != 0) {
-    GDataSetErr->_type = PBErrTypeUnitTestFailed;
-    sprintf(GDataSetErr->_msg, "GDSGetCfgFolderPath failed");
-    PBErrCatch(GDataSetErr);
-  }
-  free(str);
+  GDataSetVecFloat gdataset = 
+    GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
   if (strcmp(GDSDesc(&gdataset), "UnitTestGDataSetCreateFree") != 0) {
     GDataSetErr->_type = PBErrTypeUnitTestFailed;
     sprintf(GDataSetErr->_msg, "GDSDesc failed");
@@ -145,7 +118,8 @@ void UnitTestGDataSetVecFloatGet() {
 void UnitTestGDataSetVecFloatSplitUnsplit() {
   srandom(1);
   char* cfgFilePath = "testGDataSetVecFloat.json";
-  GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
+  GDataSetVecFloat gdataset = 
+    GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
   VecShort* split = VecShortCreate(2);
   VecSet(split, 0, 1);
   VecSet(split, 1, 2);
@@ -175,7 +149,8 @@ void UnitTestGDataSetVecFloatSplitUnsplit() {
 void UnitTestGDataSetVecFloatShuffle() {
   srandom(1);
   char* cfgFilePath = "testGDataSetVecFloat.json";
-  GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
+  GDataSetVecFloat gdataset = 
+    GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
   GDSShuffle(&gdataset, 0);
   GDataSet* g = (GDataSet*)(&gdataset);
   if (GSetGet(g->_categories, 0) != GSetGet(&(g->_samples), 1)/* ||
@@ -192,7 +167,8 @@ void UnitTestGDataSetVecFloatShuffle() {
 void UnitTestGDataSetVecFloatStepSampleGetSample() {
   srandom(1);
   char* cfgFilePath = "testGDataSetVecFloat.json";
-  GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
+  GDataSetVecFloat gdataset = 
+    GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
   int iSample = 0;
   float check[6] = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0};
   do {
@@ -213,7 +189,8 @@ void UnitTestGDataSetVecFloatStepSampleGetSample() {
 void UnitTestGDataSetVecFloatCovariance() {
   srandom(1);
   char* cfgFilePath = "testGDataSetVecFloatCovariance.json";
-  GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
+  GDataSetVecFloat gdataset = 
+    GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
   MatFloat* covariance = GDSGetCovarianceMatrix(&gdataset);
   float v[9] = {
     6.888888, 6.0, 5.111111, 
@@ -240,7 +217,8 @@ void UnitTestGDataSetVecFloatCovariance() {
 void UnitTestGDataSetVecFloatNormalize() {
   srandom(1);
   char* cfgFilePath = "testGDataSetVecFloatNormalize.json";
-  GDataSetVecFloat gdataset = GDataSetVecFloatCreateStatic(cfgFilePath);
+  GDataSetVecFloat gdataset = 
+    GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
   GDSNormalize(&gdataset);
   GSetIterForward iter = 
     GSetIterForwardCreateStatic(GDSSamples(&gdataset));
@@ -279,7 +257,7 @@ void UnitTestGDataSetGenBrushPair() {
   srandom(1);
   char* cfgFilePath = "testGDataSetGenBrushPair.json";
   GDataSetGenBrushPair gdataset = 
-    GDataSetGenBrushPairCreateStatic(cfgFilePath);
+    GDataSetGenBrushPairCreateStaticFromFile(cfgFilePath);
   if (GDSGetNbMask(&gdataset) != 2) {
     GDataSetErr->_type = PBErrTypeUnitTestFailed;
     sprintf(GDataSetErr->_msg, "GDSGetSample<GenBrushPair> failed");
@@ -308,7 +286,7 @@ void UnitTestSDSIA() {
   srandom(1);
   char* cfgFilePath = "../SDSIA/UnitTestOut/002/001/dataset.json";
   GDataSetGenBrushPair gdataset = 
-    GDataSetGenBrushPairCreateStatic(cfgFilePath);
+    GDataSetGenBrushPairCreateStaticFromFile(cfgFilePath);
   int iCat = 0;
   do {
     GDSGenBrushPair* sample = GDSGetSample(&gdataset, iCat);

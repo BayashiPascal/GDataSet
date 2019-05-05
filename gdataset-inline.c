@@ -41,7 +41,7 @@ long _GDSGetSizeCat(const GDataSet* const that, const long iCat) {
     PBErrCatch(PBImgAnalysisErr);
   }
 #endif
-  return VecGet(that->_split, iCat);
+  return (that->_split ? VecGet(that->_split, iCat) : 0);
 }
 
 // Unsplit the GDataSet 'that', i.e. after calling GDataSetUnsplit 'that' 
@@ -90,7 +90,8 @@ void _GDSShuffle(GDataSet* const that, const long iCat) {
   }
 #endif
   // Shuffle the GSet of the category
-  GSetShuffle(that->_categories + iCat);
+  if (that->_categories)
+    GSetShuffle(that->_categories + iCat);
   // Reset the iterator
   GDSReset(that, iCat);
 }
@@ -144,53 +145,6 @@ const char* _GDSDesc(const GDataSet* const that) {
   return that->_desc;
 }
 
-// Get the path of the config file of the GDataSet 'that'
-#if BUILDMODE != 0
-inline
-#endif 
-const char* _GDSCfgFilePath(const GDataSet* const that) {
-#if BUILDMODE == 0
-  if (that == NULL) {
-    GDataSetErr->_type = PBErrTypeNullPointer;
-    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
-    PBErrCatch(PBImgAnalysisErr);
-  }
-#endif
-  return that->_cfgFilePath;
-}
-
-// Get a copy of the path of the config file of the GDataSet 'that'
-#if BUILDMODE != 0
-inline
-#endif 
-char* _GDSGetCfgFilePath(const GDataSet* const that) {
-#if BUILDMODE == 0
-  if (that == NULL) {
-    GDataSetErr->_type = PBErrTypeNullPointer;
-    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
-    PBErrCatch(PBImgAnalysisErr);
-  }
-#endif
-  char* ret = malloc(strlen(that->_cfgFilePath) + 1);
-  strcpy(ret, that->_cfgFilePath);
-  return ret;
-}
-
-// Get the path of the folder of the config file of the GDataSet 'that'
-#if BUILDMODE != 0
-inline
-#endif 
-char* _GDSGetCfgFolderPath(const GDataSet* const that) {
-#if BUILDMODE == 0
-  if (that == NULL) {
-    GDataSetErr->_type = PBErrTypeNullPointer;
-    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
-    PBErrCatch(PBImgAnalysisErr);
-  }
-#endif
-  return PBFSGetRootPath(that->_cfgFilePath);
-}
-
 // Get the type of the GDataSet 'that'
 #if BUILDMODE != 0
 inline
@@ -218,7 +172,7 @@ long _GDSGetNbCat(const GDataSet* const that) {
     PBErrCatch(PBImgAnalysisErr);
   }
 #endif
-  return VecGetDim(that->_split);
+  return (that->_split ? VecGetDim(that->_split) : 0);
 }
 
 // If there is a next sample move to the next sample of the category 
@@ -245,7 +199,8 @@ bool _GDSStepSample(const GDataSet* const that, const long iCat) {
     PBErrCatch(PBImgAnalysisErr);
   }
 #endif
-  return GSetIterStep(that->_iterators + iCat);
+  return (that->_iterators ? 
+    GSetIterStep(that->_iterators + iCat) : false);
 }
 
 // Reset the iterator on category 'iCat' of the GDataSet 'that', i.e. 
@@ -273,7 +228,8 @@ void _GDSReset(GDataSet* const that, const long iCat) {
     PBErrCatch(PBImgAnalysisErr);
   }
 #endif
-  GSetIterReset(that->_iterators + iCat);
+  if (that->_iterators)
+    GSetIterReset(that->_iterators + iCat);
 }
 
 // Reset the iterator on all categories of the GDataSet 'that'
@@ -325,6 +281,19 @@ int GDSGetNbMaskGenBrushPair(const GDataSetGenBrushPair* const that) {
 }
 
 // Get the samples of the GDataSet 'that'
+#if BUILDMODE != 0
+inline
+#endif 
+const GSet* _GDSSamples(const GDataSet* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  return &(that->_samples);
+}
 #if BUILDMODE != 0
 inline
 #endif 

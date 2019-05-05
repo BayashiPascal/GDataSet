@@ -39,10 +39,6 @@ typedef enum GDataSetType {
 // ================= Data structures ===================
 
 typedef struct GDataSet {
-  // Path to the config file of the data set
-  char* _cfgFilePath;
-  // Data in the config file encoded as JSON object
-  JSONNode* _json;
   // Name of the data set
   char* _name;
   // Description of the data set
@@ -80,6 +76,8 @@ typedef struct GDataSetGenBrushPair {
   VecShort2D _dim;
   // Nb of mask per img
   int _nbMask;
+  // Path to the config file of the data set
+  char* _cfgFilePath;
 } GDataSetGenBrushPair;
 
 #define GDS_NBMAXMASK 100
@@ -94,21 +92,43 @@ typedef struct GDSGenBrushPair {
 
 // ================ Functions declaration ====================
 
-// Create a new GDataSet defined by the file at 'cfgFilePath'
-GDataSet GDataSetCreateStatic(const char* const cfgFilePath);
+// Create a new GDataSet of type 'type'
+GDataSet GDataSetCreateStatic(GDataSetType type);
 
 // Free the memory used by a GDataSet
 void GDataSetFreeStatic(GDataSet* const that);
 
+// Load the GDataSet 'that' from the stream 'stream'
+// Return true if the GDataSet could be loaded, false else
+bool GDataSetLoad(GDataSet* that, FILE* const stream);
+
+// Function which decode from JSON encoding 'json' to 'that'
+bool GDataSetDecodeAsJSON(GDataSet* that, const JSONNode* const json);
+
+// Create a new GDataSet defined by the file at 'cfgFilePath'
+GDataSet GDataSetCreateStaticFromFile(const char* const cfgFilePath);
+
 // Create a new GDataSetVecFloat defined by the file at 'cfgFilePath'
-GDataSetVecFloat GDataSetVecFloatCreateStatic(
+GDataSetVecFloat GDataSetVecFloatCreateStaticFromFile(
   const char* const cfgFilePath);
 
+// Reset the categories of the GDataSet 'that' to one unshuffled
+// category
+void GDSResetCategories(GDataSet* const that);
+
+// Function which decode from JSON encoding 'json' to 'that'
+bool GDataSetVecFloatDecodeAsJSON(GDataSetVecFloat* that, 
+  const JSONNode* const json);
+
+// Function which decode from JSON encoding 'json' to 'that'
+bool GDataSetGenBrushPairDecodeAsJSON(GDataSetGenBrushPair* that, 
+  const JSONNode* const json);
+  
 // Free the memory used by a GDataSetVecFloat
 void GDataSetVecFloatFreeStatic(GDataSetVecFloat* const that);
 
 // Create a new GDataSetGenBrushPair defined by the file at 'cfgFilePath'
-GDataSetGenBrushPair GDataSetGenBrushPairCreateStatic(
+GDataSetGenBrushPair GDataSetGenBrushPairCreateStaticFromFile(
   const char* const cfgFilePath);
 
 // Free the memory used by a GDataSetGenBrushPair
@@ -180,24 +200,6 @@ inline
 #endif 
 const char* _GDSDesc(const GDataSet* const that);
 
-// Get the path of the config file of the GDataSet 'that'
-#if BUILDMODE != 0
-inline
-#endif 
-const char* _GDSCfgFilePath(const GDataSet* const that);
-
-// Get a copy of the path of the config file of the GDataSet 'that'
-#if BUILDMODE != 0
-inline
-#endif 
-char* _GDSGetCfgFilePath(const GDataSet* const that);
-
-// Get the path of the folder of the config file of the GDataSet 'that'
-#if BUILDMODE != 0
-inline
-#endif 
-char* _GDSGetCfgFolderPath(const GDataSet* const that);
-
 // Get the type of the GDataSet 'that'
 #if BUILDMODE != 0
 inline
@@ -256,6 +258,10 @@ const VecShort* _GDSSampleDim(const GDataSet* const that);
 #if BUILDMODE != 0
 inline
 #endif 
+const GSet* _GDSSamples(const GDataSet* const that);
+#if BUILDMODE != 0
+inline
+#endif 
 const GSetVecFloat* _GDSVecFloatSamples(
   const GDataSetVecFloat* const that);
 #if BUILDMODE != 0
@@ -287,33 +293,6 @@ float GDSGetCovariance(const GDataSetVecFloat* const that,
   const VecShort2D* const indices);
 
 // ================= Polymorphism ==================
-
-#define GDSCfgFilePath(DataSet) _Generic(DataSet, \
-  GDataSet*: _GDSCfgFilePath, \
-  const GDataSet*: _GDSCfgFilePath, \
-  GDataSetVecFloat*: _GDSCfgFilePath, \
-  const GDataSetVecFloat*: _GDSCfgFilePath, \
-  GDataSetGenBrushPair*: _GDSCfgFilePath, \
-  const GDataSetGenBrushPair*: _GDSCfgFilePath, \
-  default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet)
-
-#define GDSGetCfgFilePath(DataSet) _Generic(DataSet, \
-  GDataSet*: _GDSGetCfgFilePath, \
-  const GDataSet*: _GDSGetCfgFilePath, \
-  GDataSetVecFloat*: _GDSGetCfgFilePath, \
-  const GDataSetVecFloat*: _GDSGetCfgFilePath, \
-  GDataSetGenBrushPair*: _GDSGetCfgFilePath, \
-  const GDataSetGenBrushPair*: _GDSGetCfgFilePath, \
-  default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet)
-
-#define GDSGetCfgFolderPath(DataSet) _Generic(DataSet, \
-  GDataSet*: _GDSGetCfgFolderPath, \
-  const GDataSet*: _GDSGetCfgFolderPath, \
-  GDataSetVecFloat*: _GDSGetCfgFolderPath, \
-  const GDataSetVecFloat*: _GDSGetCfgFolderPath, \
-  GDataSetGenBrushPair*: _GDSGetCfgFolderPath, \
-  const GDataSetGenBrushPair*: _GDSGetCfgFolderPath, \
-  default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet)
 
 #define GDSDesc(DataSet) _Generic(DataSet, \
   GDataSet*: _GDSDesc, \
@@ -446,6 +425,8 @@ float GDSGetCovariance(const GDataSetVecFloat* const that,
   default: PBErrInvalidPolymorphism)((GDataSet*)DataSet)
 
 #define GDSSamples(DataSet) _Generic(DataSet, \
+  GDataSet*: _GDSSamples, \
+  const GDataSet*: _GDSSamples, \
   GDataSetVecFloat*: _GDSVecFloatSamples, \
   const GDataSetVecFloat*: _GDSVecFloatSamples, \
   GDataSetGenBrushPair*: _GDSGenBrushPairSamples, \
