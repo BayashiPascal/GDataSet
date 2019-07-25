@@ -393,7 +393,7 @@ bool GDataSetGenBrushPairDecodeAsJSON(GDataSetGenBrushPair* that,
       "Invalid description file (nbMask missing)");
     PBErrCatch(GDataSetErr);
   }
-  that->_nbMask = atoi(JSONLabel(JSONValue(prop, 0)));
+  that->_nbMask = atoi(JSONLblVal(prop));
   if (that->_nbMask >= GDS_NBMAXMASK) {
     GDataSetErr->_type = PBErrTypeInvalidData;
     sprintf(GDataSetErr->_msg, 
