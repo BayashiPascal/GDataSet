@@ -7,4 +7,5 @@ UnitTestGDataSetVecFloatCovariance OK
 UnitTestGDataSetVecFloatNormalize OK
 UnitTestGDataSetVecFloatCreateFromCSVSave OK
 UnitTestGDataSetGenBrushPair OK
+UnitTestNNEval OK
 UnitTestSDSIA OK

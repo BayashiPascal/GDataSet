@@ -243,17 +243,19 @@ void UnitTestGDataSetVecFloatNormalize() {
   printf("UnitTestGDataSetVecFloatNormalize OK\n");
 }
 
-float VecFloatCSVImporter(int col, char* val) {
+void VecFloatCSVImporter(
+  int col, 
+  char* val,
+  VecFloat* sample) {
   if (col == 0) {
     if (*val == 'A') {
-      return 10.0;
+      VecSet(sample, col, 10.0);
     } else if (*val == 'B') {
-      return 20.0;
+      VecSet(sample, col, 20.0);
     }
   } else {
-    return atof(val);
+    VecSet(sample, col, atof(val));
   }
-  return 0.0;
 }
 
 void UnitTestGDataSetVecFloatCreateFromCSVSave() {
@@ -374,9 +376,57 @@ void UnitTestSDSIA() {
   printf("UnitTestSDSIA OK\n");
 }
 
+void UnitTestNNEvalCSVImporter(
+        int col, 
+      char* val,
+  VecFloat* sample) {
+  VecSet(sample, col, atof(val));
+}
+
+void UnitTestGDataSetNNEval() {
+  char* csvPath = "./unitTestNNEval.csv";
+  GDSVecFloatCSVImporter importer = 
+    GDSVecFloatCSVImporterCreateStatic(
+      0,
+      ' ',
+      11,
+      &UnitTestNNEvalCSVImporter);
+  GDataSetVecFloat dataset = 
+    GDataSetCreateStaticFromCSV(csvPath, &importer);
+  NeuraNet* nn = NULL;
+  FILE* fp = fopen("./unitTestNNEval.json", "r");
+  (void)NNLoad(&nn, fp);
+  fclose(fp);
+  VecShort* inputs = VecShortCreate(10);
+  for (int i = 10; i--;)
+    VecSet(inputs, i, i);
+  VecShort* outputs = VecShortCreate(1);
+  VecSet(outputs, 0, 10);
+  int iCat = 0;
+  float threshold = -1000.0;
+  float val = GDSEvaluateNN(
+    &dataset, 
+    nn, 
+    iCat, 
+    inputs, 
+    outputs, 
+    threshold);
+  if (!ISEQUALF(val, -1.672186)) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSEvaluateNN failed");
+    PBErrCatch(GDataSetErr);
+  }
+  VecFree(&inputs);
+  VecFree(&outputs);
+  NeuraNetFree(&nn);
+  GDataSetVecFloatFreeStatic(&dataset);
+  printf("UnitTestNNEval OK\n");
+}
+
 void UnitTestAll() {
   UnitTestGDataSetVecFloat();
   UnitTestGDataSetGenBrushPair();
+  UnitTestGDataSetNNEval();
   UnitTestSDSIA();
 }
 

@@ -934,18 +934,13 @@ GDataSetVecFloat GDataSetCreateStaticFromCSV(
           ++iChar && iChar < sizeof(buffer) && !feof(csvFile));
         buffer[iChar] = '\0';
 
-        // Decode the value
-        float val = 0.0;
+        // Decode the value and set it into the sample
         if (importer->_converter != NULL) {
-          val = importer->_converter(iCol, buffer);
+          importer->_converter(iCol, buffer, sample);
         } else {
-          val = atof(buffer);
+          VecSet(sample, iCol, atof(buffer));
         }
-        
-        // Add the value to the sample
-        VecSet(sample, iCol, val);
       }
-      
       // If we haven't reached the end of the file
       if (!feof(csvFile)) {
         
@@ -979,7 +974,10 @@ GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
   const unsigned int sizeHeader,
           const char sep,
   const unsigned int nbCol,
-               float (*converter)(int col, char* val)) {
+                void (*converter)(
+                  int col, 
+                  char* val, 
+                  VecFloat* sample)) {
   GDSVecFloatCSVImporter importer = {
     ._sizeHeader=sizeHeader,
     ._sep=sep,
@@ -1099,7 +1097,7 @@ float GDataSetVecFloatEvaluateNN(
   if (VecGetDim(iInputs) != NNGetNbInput(nn)) {
     GDataSetErr->_type = PBErrTypeInvalidArg;
     sprintf(GDataSetErr->_msg, 
-      "Dim of 'iInputs' is invalid (%ld==%ld)",
+      "Dim of 'iInputs' is invalid (%ld==%d)",
       VecGetDim(iInputs),
       NNGetNbInput(nn));
     PBErrCatch(GDataSetErr);
@@ -1107,7 +1105,7 @@ float GDataSetVecFloatEvaluateNN(
   if (VecGetDim(iOutputs) != NNGetNbOutput(nn)) {
     GDataSetErr->_type = PBErrTypeInvalidArg;
     sprintf(GDataSetErr->_msg, 
-      "Dim of 'iOutputs' is invalid (%ld==%ld)",
+      "Dim of 'iOutputs' is invalid (%ld==%d)",
       VecGetDim(iOutputs),
       NNGetNbOutput(nn));
     PBErrCatch(GDataSetErr);

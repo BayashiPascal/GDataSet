@@ -98,8 +98,11 @@ typedef struct GDSVecFloatCSVImporter {
   char _sep;
   // Number of column
   unsigned int _nbCol;
-  // Fied converter function
-  float (*_converter)(int col, char* val);
+  // Field converter function
+  void (*_converter)(
+    int col, 
+    char* val, 
+    VecFloat* sample);
 } GDSVecFloatCSVImporter;
 
 // ================ Functions declaration ====================
@@ -317,7 +320,10 @@ GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
   const unsigned int sizeHeader,
           const char sep,
   const unsigned int nbCol,
-               float (*converter)(int col, char* val));
+                void (*converter)(
+                  int col, 
+                  char* val, 
+                  VecFloat* sample));
   
 // Save the GDataSetVecFloat to the stream
 // If 'compact' equals true it saves in compact form, else it saves in 
@@ -492,11 +498,12 @@ float GDataSetVecFloatEvaluateNN(
   const GDataSetVecFloat*: GDSVecFloatSave, \
   default: PBErrInvalidPolymorphism)(DataSet, Stream, Compact)
 
-#define GDSEvaluateNN(DataSet, NN, Cat, Inputs, Outputs, Threshold) \
-  _Generic(DataSet, \
-  GDataSetVecFloat*: GDSVecFloatEvalueNN, \
-  const GDataSetVecFloat*: GDSVecFloatEvaluateNN, \
-  default: PBErrInvalidPolymorphism)(DataSet, NN, Cat, Inputs, Outputs)
+#define GDSEvaluateNN(GDS, NN, Cat, Inputs, Outputs, Threshold) \
+  _Generic(GDS, \
+  GDataSetVecFloat*: GDataSetVecFloatEvaluateNN, \
+  const GDataSetVecFloat*: GDataSetVecFloatEvaluateNN, \
+  default: PBErrInvalidPolymorphism)( \
+    GDS, NN, Cat, Inputs, Outputs, Threshold)
 
 // ================ Inliner ====================
 
