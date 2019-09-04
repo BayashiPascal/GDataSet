@@ -90,6 +90,17 @@ typedef struct GDSGenBrushPair {
   GenBrush* _mask[GDS_NBMAXMASK];
 } GDSGenBrushPair;
 
+typedef struct GDSVecFloatCSVImporter {
+  // Size (nb of lines) of the header
+  unsigned int _sizeHeader;
+  // Separator
+  char _sep;
+  // Number of column
+  unsigned int _nbCol;
+  // Fied converter function
+  float (*_converter)(int col, char* val);
+} GDSVecFloatCSVImporter;
+
 // ================ Functions declaration ====================
 
 // Create a new GDataSet of type 'type'
@@ -104,9 +115,6 @@ bool GDataSetLoad(GDataSet* that, FILE* const stream);
 
 // Function which decode from JSON encoding 'json' to 'that'
 bool GDataSetDecodeAsJSON(GDataSet* that, const JSONNode* const json);
-
-// Create a new GDataSet defined by the file at 'cfgFilePath'
-GDataSet GDataSetCreateStaticFromFile(const char* const cfgFilePath);
 
 // Create a new GDataSetVecFloat defined by the file at 'cfgFilePath'
 GDataSetVecFloat GDataSetVecFloatCreateStaticFromFile(
@@ -291,6 +299,20 @@ MatFloat* GDSGetCovarianceMatrix(const GDataSetVecFloat* const that);
 // GDataSetVecFloat 'that'
 float GDSGetCovariance(const GDataSetVecFloat* const that,
   const VecShort2D* const indices);
+
+// Create a GDataSetVecFloat by importing the CSV file 'csvPath' and 
+// decoding it with the 'importer'
+// Return an empty GDatasetVecFloat if the importation failed
+GDataSetVecFloat GDataSetCreateStaticFromCSV(
+                    const char* const csvPath,
+  const GDSVecFloatCSVImporter* const importer);
+
+// Create a CSV importer for a GDataSetVecFloat
+GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
+  unsigned int sizeHeader,
+  char sep,
+  unsigned int nbCol,
+  float (*_converter)(int col, char* val));
 
 // ================= Polymorphism ==================
 

@@ -279,12 +279,16 @@ void GDSResetCategories(GDataSet* const that) {
     }
     free(that->_categories);
   }
+  if (that->_iterators)
+    free(that->_iterators);
   that->_categories = GSetCreate();
   GSetIterForward iter = GSetIterForwardCreateStatic(GDSSamples(that));
-  do {
-    void* sample = GSetIterGet(&iter);
-    GSetAppend(that->_categories, sample);
-  } while (GSetIterStep(&iter));
+  if (GDSGetSize(that) > 0) {
+    do {
+      void* sample = GSetIterGet(&iter);
+      GSetAppend(that->_categories, sample);
+    } while (GSetIterStep(&iter));
+  }
   that->_iterators = PBErrMalloc(GDataSetErr, sizeof(GSetIterForward));
   that->_iterators[0] = GSetIterForwardCreateStatic(that->_categories);
 }
@@ -864,3 +868,123 @@ float GDSGetCovariance(const GDataSetVecFloat* const that,
   return res;
 }
 
+// Create a GDataSetVecFloat by importing the CSV file 'csvPath' and 
+// decoding it with the 'importer'
+// Return an empty GDatasetVecFloat if the importation failed
+GDataSetVecFloat GDataSetCreateStaticFromCSV(
+                    const char* const csvPath,
+  const GDSVecFloatCSVImporter* const importer) {
+#if BUILDMODE == 0
+  if (csvPath == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'csvPath' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+  if (importer == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'importer' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Declare the result GDataSetVecFloat
+  GDataSetVecFloat dataset;
+  GDataSet* that = (GDataSet*)&dataset;
+  *that = GDataSetCreateStatic(GDataSetType_VecFloat);
+
+  // Initialise the properties
+  that->_name = strdup(csvPath);
+  that->_desc = strdup(csvPath);
+  that->_sampleDim = VecShortCreate(1);
+  VecSet(that->_sampleDim, 0, importer->_nbCol); 
+  that->_samples = GSetCreateStatic();
+
+  // Open the csv file
+  FILE* csvFile = fopen(csvPath, "r");
+
+  // If we could open the file
+  if (csvFile != NULL) {
+
+    // Skip the header
+    unsigned int nbSkip = 0;
+    while (nbSkip < importer->_sizeHeader &&
+      !feof(csvFile)) {
+      char buffer;
+      buffer = fgetc(csvFile);
+      if (buffer == '\n')
+        ++nbSkip;
+    }
+    
+    // Load the samples line by line
+    while (!feof(csvFile)) {
+      
+      // Allocate memory for a new sample
+      VecFloat* sample = VecFloatCreate(importer->_nbCol);
+      
+      // Decode each column
+      for (unsigned int iCol = 0; 
+        iCol < importer->_nbCol && !feof(csvFile); ++iCol) {
+
+        // Read the value
+        char buffer[1024];
+        unsigned int iChar = 0;
+        do {
+          buffer[iChar] = fgetc(csvFile);
+        } while (buffer[iChar] != importer->_sep &&
+          buffer[iChar] != '\n' &&
+          ++iChar && iChar < sizeof(buffer) && !feof(csvFile));
+        buffer[iChar] = '\0';
+
+        // Decode the value
+        float val = 0.0;
+        if (importer->_converter != NULL) {
+          val = importer->_converter(iCol, buffer);
+        } else {
+          val = atof(buffer);
+        }
+        
+        // Add the value to the sample
+        VecSet(sample, iCol, val);
+      }
+      
+      // If we haven't reached the end of the file
+      if (!feof(csvFile)) {
+        
+        // Add the sample to the dataset
+        GSetAppend((GSet*)GDSSamples(that), sample);
+      
+      // Else, we are at the end of the file
+      } else {
+
+        // Free the memory
+        VecFree(&sample);
+      }
+    }
+    
+    // Update the number of samples
+    that->_nbSample = GSetNbElem(GDSSamples(that));
+
+    // Close the csv file
+    fclose(csvFile);
+  }
+
+  // Initialise the categories
+  GDSResetCategories(that);
+  
+  // Return the dataset
+  return dataset;
+}
+
+// Create a CSV importer for a GDataSetVecFloat
+GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
+  unsigned int sizeHeader,
+  char sep,
+  unsigned int nbCol,
+  float (*converter)(int col, char* val)) {
+  GDSVecFloatCSVImporter importer = {
+    ._sizeHeader=sizeHeader,
+    ._sep=sep,
+    ._nbCol=nbCol,
+    ._converter=converter
+  };
+  return importer;
+}
