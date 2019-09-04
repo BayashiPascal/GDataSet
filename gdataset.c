@@ -976,10 +976,10 @@ GDataSetVecFloat GDataSetCreateStaticFromCSV(
 
 // Create a CSV importer for a GDataSetVecFloat
 GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
-  unsigned int sizeHeader,
-  char sep,
-  unsigned int nbCol,
-  float (*converter)(int col, char* val)) {
+  const unsigned int sizeHeader,
+          const char sep,
+  const unsigned int nbCol,
+               float (*converter)(int col, char* val)) {
   GDSVecFloatCSVImporter importer = {
     ._sizeHeader=sizeHeader,
     ._sep=sep,
@@ -1031,20 +1031,20 @@ JSONNode* GDataSetVecFloatEncodeAsJSON(
 // If 'compact' equals true it saves in compact form, else it saves in 
 // readable form
 // Return true upon success else false
-bool GDataSetVecFloatSave(
+bool GDSVecFloatSave(
   const GDataSetVecFloat* const that, 
   FILE* const stream, 
   const bool compact) {
 #if BUILDMODE == 0
   if (that == NULL) {
-    ShapoidErr->_type = PBErrTypeNullPointer;
-    sprintf(ShapoidErr->_msg, "'that' is null");
-    PBErrCatch(ShapoidErr);
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(GDataSetErr->_msg, "'that' is null");
+    PBErrCatch(GDataSetErr);
   }
   if (stream == NULL) {
-    ShapoidErr->_type = PBErrTypeNullPointer;
-    sprintf(ShapoidErr->_msg, "'stream' is null");
-    PBErrCatch(ShapoidErr);
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(GDataSetErr->_msg, "'stream' is null");
+    PBErrCatch(GDataSetErr);
   }
 #endif
   // Get the JSON encoding
@@ -1057,4 +1057,128 @@ bool GDataSetVecFloatSave(
   JSONFree(&json);
   // Return success code
   return true;
+}
+
+// Run the prediction by the NeuraNet 'nn' on each sample of the category
+// 'iCat' of the GDataSet 'that'. The index of columns in the samples
+// for inputs and outputs are given by 'inputs' and 'outputs'.
+// input values in [-1,1] and output values in [-1,1]
+// Stop the prediction of samples when the result can't get better
+// than 'threhsold'
+// Return the value of the NeuraNet on the predicted samples, defined
+// as sum_samples(||output_sample-output_neuranet||)/nb_sample
+// Higher is better, 0.0 is best value
+float GDataSetVecFloatEvaluateNN(
+  const GDataSetVecFloat* const that, 
+  const NeuraNet* const nn, 
+  const long iCat, 
+  const VecShort* const iInputs,
+  const VecShort* const iOutputs,
+  const float threshold) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(GDataSetErr->_msg, "'that' is null");
+    PBErrCatch(GDataSetErr);
+  }
+  if (nn == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(GDataSetErr->_msg, "'nn' is null");
+    PBErrCatch(GDataSetErr);
+  }
+  if (iInputs == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(GDataSetErr->_msg, "'iInputs' is null");
+    PBErrCatch(GDataSetErr);
+  }
+  if (iOutputs == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(GDataSetErr->_msg, "'iOutputs' is null");
+    PBErrCatch(GDataSetErr);
+  }
+  if (VecGetDim(iInputs) != NNGetNbInput(nn)) {
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(GDataSetErr->_msg, 
+      "Dim of 'iInputs' is invalid (%ld==%ld)",
+      VecGetDim(iInputs),
+      NNGetNbInput(nn));
+    PBErrCatch(GDataSetErr);
+  }
+  if (VecGetDim(iOutputs) != NNGetNbOutput(nn)) {
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(GDataSetErr->_msg, 
+      "Dim of 'iOutputs' is invalid (%ld==%ld)",
+      VecGetDim(iOutputs),
+      NNGetNbOutput(nn));
+    PBErrCatch(GDataSetErr);
+  }
+#endif
+
+  // Declare a variable to memorize the result
+  float value = 0.0;
+  
+  // Declare a variable to memorize the nb of predicted samples
+  long nbPredSample = 0;
+  
+  // Declare a variable to manage the threshold
+  bool flag = true;
+
+  // Declare variables for the input and output of the NeuraNet and
+  // for the correct output of the NeuraNet
+  VecFloat* inputNN = VecFloatCreate(NNGetNbInput(nn));
+  VecFloat* outputNN = VecFloatCreate(NNGetNbOutput(nn));
+  VecFloat* outputSample = VecFloatCreate(NNGetNbOutput(nn));
+  
+  // Loop on the samples of the requested category
+  do {
+    // Get a clone of the sample
+    VecFloat* sample = GDSGetSample(that, iCat);
+
+    // Create the input of the NeuraNet from the sample
+    for (int iInput = NNGetNbInput(nn); iInput--;) {
+      VecSet(inputNN, iInput, 
+        VecGet(sample, VecGet(iInputs, iInput)));
+    }
+
+    // Run the prediction
+    NNEval(nn, inputNN, outputNN);
+
+    // Create the correct output of the NeuraNet from the sample
+    for (int iOutput = NNGetNbOutput(nn); iOutput--;) {
+      VecSet(outputSample, iOutput, 
+        VecGet(sample, VecGet(iOutputs, iOutput)));
+    }
+
+    // Calculate the value on this sample
+    VecFloat* diff = VecGetOp(outputNN, 1.0, outputSample, -1.0);
+    float sampleValue = VecNorm(diff);
+    VecFree(&diff);
+    
+    // Update the total value
+    value += sampleValue;
+    
+    // Check against the threshold
+    float bestPossible = -1.0 * value / (float)GDSGetSizeCat(that, iCat);
+    if (bestPossible <= threshold) {
+      flag = false;
+    }
+
+    // Free memory
+    VecFree(&sample);
+    
+    // Increment the nb of predicted samples
+    ++nbPredSample;
+
+  } while (flag && GDSStepSample(that, iCat));
+
+  // Update the total value
+  value /= (float)nbPredSample;
+
+  // Free memory
+  VecFree(&inputNN);
+  VecFree(&outputNN);
+  VecFree(&outputSample);
+  
+  // Return the value of the NeuraNet on the samples
+  return value * -1.0;
 }

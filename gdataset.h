@@ -16,6 +16,7 @@
 #include "pbmath.h"
 #include "pbjson.h"
 #include "pbfilesys.h"
+#include "neuranet.h"
 
 // Define locally the needed types and functions for libraries that were
 // not included to allow the user to inlcude only what's needed for her
@@ -313,19 +314,37 @@ GDataSetVecFloat GDataSetCreateStaticFromCSV(
 
 // Create a CSV importer for a GDataSetVecFloat
 GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
-  unsigned int sizeHeader,
-  char sep,
-  unsigned int nbCol,
-  float (*_converter)(int col, char* val));
+  const unsigned int sizeHeader,
+          const char sep,
+  const unsigned int nbCol,
+               float (*converter)(int col, char* val));
   
 // Save the GDataSetVecFloat to the stream
 // If 'compact' equals true it saves in compact form, else it saves in 
 // readable form
 // Return true upon success else false
-bool GDataSetVecFloatSave(
+bool GDSVecFloatSave(
   const GDataSetVecFloat* const that, 
   FILE* const stream, 
   const bool compact);
+
+// Run the prediction by the NeuraNet 'nn' on each sample of the category
+// 'iCat' of the GDataSet 'that'. The index of columns in the samples
+// for inputs and outputs are given by 'inputs' and 'outputs'.
+// input values in [-1,1] and output values in [-1,1]
+// Stop the prediction of samples when the result can't get better
+// than 'threhsold'
+// Return the value of the NeuraNet on the predicted samples, defined
+// as sum_samples(||output_sample-output_neuranet||)/nb_sample
+// Higher is better, 0.0 is best value
+float GDataSetVecFloatEvaluateNN(
+  const GDataSetVecFloat* const that, 
+  const NeuraNet* const nn, 
+  const long iCat, 
+  const VecShort* const iInputs,
+  const VecShort* const iOutputs,
+  const float threshold);
+
 
 // ================= Polymorphism ==================
 
@@ -468,10 +487,16 @@ bool GDataSetVecFloatSave(
   const GDataSetGenBrushPair*: _GDSGenBrushPairSamples, \
   default: PBErrInvalidPolymorphism)(DataSet)
 
-#define GDSSave(DataSet, Stream) _Generic(DataSet, \
+#define GDSSave(DataSet, Stream, Compact) _Generic(DataSet, \
   GDataSetVecFloat*: GDSVecFloatSave, \
   const GDataSetVecFloat*: GDSVecFloatSave, \
-  default: PBErrInvalidPolymorphism)(DataSet)
+  default: PBErrInvalidPolymorphism)(DataSet, Stream, Compact)
+
+#define GDSEvaluateNN(DataSet, NN, Cat, Inputs, Outputs, Threshold) \
+  _Generic(DataSet, \
+  GDataSetVecFloat*: GDSVecFloatEvalueNN, \
+  const GDataSetVecFloat*: GDSVecFloatEvaluateNN, \
+  default: PBErrInvalidPolymorphism)(DataSet, NN, Cat, Inputs, Outputs)
 
 // ================ Inliner ====================
 

@@ -287,7 +287,7 @@ void UnitTestGDataSetVecFloatCreateFromCSVSave() {
     }
   }
   FILE* stream = fopen("./unitTestVecFloatSave.json", "w");
-  if (GDataSetVecFloatSave(&dataset, stream, false) == false) {
+  if (GDSSave(&dataset, stream, false) == false) {
     GDataSetErr->_type = PBErrTypeUnitTestFailed;
     sprintf(GDataSetErr->_msg, "GDataSetVecFloatSave failed");
     PBErrCatch(GDataSetErr);
