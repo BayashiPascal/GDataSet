@@ -988,3 +988,73 @@ GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
   };
   return importer;
 }
+
+// Function which return the JSON encoding of 'that' 
+JSONNode* GDataSetVecFloatEncodeAsJSON(
+  const GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Create the JSON structure
+  JSONNode* json = JSONCreate();
+
+  // Declare a buffer to convert value into string
+  char val[100];
+
+  // Encode the properties
+  JSONAddProp(json, "dataSet", that->_dataSet._name);
+  sprintf(val, "%d", that->_dataSet._type);
+  JSONAddProp(json, "dataSetType", val);
+  JSONAddProp(json, "desc", that->_dataSet._desc);
+  sprintf(val, "%d", that->_dataSet._nbSample);
+  JSONAddProp(json, "nbSample", val);
+  JSONAddProp(json, "dim", VecEncodeAsJSON(that->_dataSet._sampleDim));
+  JSONArrayStruct samples = JSONArrayStructCreateStatic();
+  GSetIterForward iter = GSetIterForwardCreateStatic(GDSSamples(that));
+  do {
+    VecFloat* sample = GSetIterGet(&iter);
+    JSONArrayStructAdd(&samples, 
+      VecEncodeAsJSON(sample));
+  } while (GSetIterStep(&iter));
+  JSONAddProp(json, "samples", &samples);
+  JSONArrayStructFlush(&samples);
+
+  // Return the created JSON 
+  return json;
+}
+
+// Save the GDataSetVecFloat to the stream
+// If 'compact' equals true it saves in compact form, else it saves in 
+// readable form
+// Return true upon success else false
+bool GDataSetVecFloatSave(
+  const GDataSetVecFloat* const that, 
+  FILE* const stream, 
+  const bool compact) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    ShapoidErr->_type = PBErrTypeNullPointer;
+    sprintf(ShapoidErr->_msg, "'that' is null");
+    PBErrCatch(ShapoidErr);
+  }
+  if (stream == NULL) {
+    ShapoidErr->_type = PBErrTypeNullPointer;
+    sprintf(ShapoidErr->_msg, "'stream' is null");
+    PBErrCatch(ShapoidErr);
+  }
+#endif
+  // Get the JSON encoding
+  JSONNode* json = GDataSetVecFloatEncodeAsJSON(that);
+  // Save the JSON
+  if (!JSONSave(json, stream, compact)) {
+    return false;
+  }
+  // Free memory
+  JSONFree(&json);
+  // Return success code
+  return true;
+}

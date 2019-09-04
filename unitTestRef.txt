@@ -5,6 +5,6 @@ UnitTestGDataSetVecFloatShuffle OK
 UnitTestGDataSetVecFloatStepSampleGetSample OK
 UnitTestGDataSetVecFloatCovariance OK
 UnitTestGDataSetVecFloatNormalize OK
-UnitTestGDataSetVecFloatCreateFromCSV OK
+UnitTestGDataSetVecFloatCreateFromCSVSave OK
 UnitTestGDataSetGenBrushPair OK
 UnitTestSDSIA OK

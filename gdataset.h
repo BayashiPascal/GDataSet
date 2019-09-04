@@ -128,6 +128,10 @@ void GDSResetCategories(GDataSet* const that);
 bool GDataSetVecFloatDecodeAsJSON(GDataSetVecFloat* that, 
   const JSONNode* const json);
 
+// Function which return the JSON encoding of 'that' 
+JSONNode* GDataSetVecFloatEncodeAsJSON(
+  const GDataSetVecFloat* const that);
+
 // Function which decode from JSON encoding 'json' to 'that'
 bool GDataSetGenBrushPairDecodeAsJSON(GDataSetGenBrushPair* that, 
   const JSONNode* const json);
@@ -313,6 +317,15 @@ GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
   char sep,
   unsigned int nbCol,
   float (*_converter)(int col, char* val));
+  
+// Save the GDataSetVecFloat to the stream
+// If 'compact' equals true it saves in compact form, else it saves in 
+// readable form
+// Return true upon success else false
+bool GDataSetVecFloatSave(
+  const GDataSetVecFloat* const that, 
+  FILE* const stream, 
+  const bool compact);
 
 // ================= Polymorphism ==================
 
@@ -453,6 +466,11 @@ GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
   const GDataSetVecFloat*: _GDSVecFloatSamples, \
   GDataSetGenBrushPair*: _GDSGenBrushPairSamples, \
   const GDataSetGenBrushPair*: _GDSGenBrushPairSamples, \
+  default: PBErrInvalidPolymorphism)(DataSet)
+
+#define GDSSave(DataSet, Stream) _Generic(DataSet, \
+  GDataSetVecFloat*: GDSVecFloatSave, \
+  const GDataSetVecFloat*: GDSVecFloatSave, \
   default: PBErrInvalidPolymorphism)(DataSet)
 
 // ================ Inliner ====================

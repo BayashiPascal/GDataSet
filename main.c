@@ -256,7 +256,7 @@ float VecFloatCSVImporter(int col, char* val) {
   return 0.0;
 }
 
-void UnitTestGDataSetVecFloatCreateFromCSV() {
+void UnitTestGDataSetVecFloatCreateFromCSVSave() {
   char* csvPath = "./unitTestVecFloatCSV.csv";
   GDSVecFloatCSVImporter importer = 
     GDSVecFloatCSVImporterCreateStatic(
@@ -286,9 +286,28 @@ void UnitTestGDataSetVecFloatCreateFromCSV() {
       }
     }
   }
-
+  FILE* stream = fopen("./unitTestVecFloatSave.json", "w");
+  if (GDataSetVecFloatSave(&dataset, stream, false) == false) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDataSetVecFloatSave failed");
+    PBErrCatch(GDataSetErr);
+  }
+  fclose(stream);
+  GDataSetVecFloat load = 
+    GDataSetVecFloatCreateStaticFromFile("./unitTestVecFloatSave.json");
+  for (int iSample = 0; iSample < GDSGetSize(&dataset); ++iSample) {
+    for (unsigned int iCol = 0; iCol < importer._nbCol; ++iCol) {
+      if (ISEQUALF(check[iSample * importer._nbCol + iCol],
+        VecGet(GSetGet(GDSSamples(&load), iSample), iCol)) == false) {
+        GDataSetErr->_type = PBErrTypeUnitTestFailed;
+        sprintf(GDataSetErr->_msg, "GDataSetVecFloatSave failed");
+        PBErrCatch(GDataSetErr);
+      }
+    }
+  }
   GDataSetVecFloatFreeStatic(&dataset);
-  printf("UnitTestGDataSetVecFloatCreateFromCSV OK\n");
+  GDataSetVecFloatFreeStatic(&load);
+  printf("UnitTestGDataSetVecFloatCreateFromCSVSave OK\n");
 }
 
 void UnitTestGDataSetVecFloat() {
@@ -299,7 +318,7 @@ void UnitTestGDataSetVecFloat() {
   UnitTestGDataSetVecFloatStepSampleGetSample();
   UnitTestGDataSetVecFloatCovariance();
   UnitTestGDataSetVecFloatNormalize();
-  UnitTestGDataSetVecFloatCreateFromCSV();
+  UnitTestGDataSetVecFloatCreateFromCSVSave();
 }
 
 void UnitTestGDataSetGenBrushPair() {
