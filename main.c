@@ -265,6 +265,7 @@ void UnitTestGDataSetVecFloatCreateFromCSVSave() {
       1,
       ',',
       3,
+      3,
       &VecFloatCSVImporter);
   GDataSetVecFloat dataset = 
     GDataSetCreateStaticFromCSV(csvPath, &importer);
@@ -380,7 +381,23 @@ void UnitTestNNEvalCSVImporter(
         int col, 
       char* val,
   VecFloat* sample) {
-  VecSet(sample, col, atof(val));
+  if (col == 0) {
+    if (*val == 'M') {
+      VecSet(sample, 0, 1.0);
+      VecSet(sample, 1, 0.0);
+      VecSet(sample, 2, 0.0);
+    } else if (*val == 'F') {
+      VecSet(sample, 0, 0.0);
+      VecSet(sample, 1, 1.0);
+      VecSet(sample, 2, 0.0);
+    } else if (*val == 'I') {
+      VecSet(sample, 0, 0.0);
+      VecSet(sample, 1, 0.0);
+      VecSet(sample, 2, 1.0);
+    }
+  } else {
+    VecSet(sample, col + 2, atof(val));
+  }
 }
 
 void UnitTestGDataSetNNEval() {
@@ -389,6 +406,7 @@ void UnitTestGDataSetNNEval() {
     GDSVecFloatCSVImporterCreateStatic(
       0,
       ' ',
+      9,
       11,
       &UnitTestNNEvalCSVImporter);
   GDataSetVecFloat dataset = 

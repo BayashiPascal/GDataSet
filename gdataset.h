@@ -96,8 +96,10 @@ typedef struct GDSVecFloatCSVImporter {
   unsigned int _sizeHeader;
   // Separator
   char _sep;
-  // Number of column
+  // Number of column in CSV
   unsigned int _nbCol;
+  // Size of the resulting sample
+  unsigned int _sizeSample;
   // Field converter function
   void (*_converter)(
     int col, 
@@ -320,6 +322,7 @@ GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
   const unsigned int sizeHeader,
           const char sep,
   const unsigned int nbCol,
+  const unsigned int sizeSample,
                 void (*converter)(
                   int col, 
                   char* val, 

@@ -895,7 +895,7 @@ GDataSetVecFloat GDataSetCreateStaticFromCSV(
   that->_name = strdup(csvPath);
   that->_desc = strdup(csvPath);
   that->_sampleDim = VecShortCreate(1);
-  VecSet(that->_sampleDim, 0, importer->_nbCol); 
+  VecSet(that->_sampleDim, 0, importer->_sizeSample); 
   that->_samples = GSetCreateStatic();
 
   // Open the csv file
@@ -918,7 +918,7 @@ GDataSetVecFloat GDataSetCreateStaticFromCSV(
     while (!feof(csvFile)) {
       
       // Allocate memory for a new sample
-      VecFloat* sample = VecFloatCreate(importer->_nbCol);
+      VecFloat* sample = VecFloatCreate(importer->_sizeSample);
       
       // Decode each column
       for (unsigned int iCol = 0; 
@@ -974,6 +974,7 @@ GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
   const unsigned int sizeHeader,
           const char sep,
   const unsigned int nbCol,
+  const unsigned int sizeSample,
                 void (*converter)(
                   int col, 
                   char* val, 
@@ -982,6 +983,7 @@ GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
     ._sizeHeader=sizeHeader,
     ._sep=sep,
     ._nbCol=nbCol,
+    ._sizeSample=sizeSample,
     ._converter=converter
   };
   return importer;
