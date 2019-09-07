@@ -354,6 +354,8 @@ float GDataSetVecFloatEvaluateNN(
   const VecShort* const iOutputs,
   const float threshold);
 
+// Create a new GDataSetVecFloat
+GDataSetVecFloat GDataSetVecFloatCreateStatic();
 
 // ================= Polymorphism ==================
 

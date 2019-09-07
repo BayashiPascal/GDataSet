@@ -1182,3 +1182,16 @@ float GDataSetVecFloatEvaluateNN(
   // Return the value of the NeuraNet on the samples
   return value * -1.0;
 }
+
+// Create a new GDataSetVecFloat
+GDataSetVecFloat GDataSetVecFloatCreateStatic() {
+  // Declare the result GDataSetVecFloat
+  GDataSetVecFloat that;
+  
+  // Initialise properties
+  that._dataSet = GDataSetCreateStatic(GDataSetType_VecFloat);
+  
+  // Return the dataset
+  return that;
+}
+
