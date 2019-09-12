@@ -138,6 +138,12 @@ bool GDataSetVecFloatDecodeAsJSON(GDataSetVecFloat* that,
 JSONNode* GDataSetVecFloatEncodeAsJSON(
   const GDataSetVecFloat* const that);
 
+// Function which return the JSON encoding of the category 'iCat'
+// of'that' 
+JSONNode* GDataSetVecFloatEncodeCategoryAsJSON(
+  const GDataSetVecFloat* const that,
+             const unsigned int iCat);
+
 // Function which decode from JSON encoding 'json' to 'that'
 bool GDataSetGenBrushPairDecodeAsJSON(GDataSetGenBrushPair* that, 
   const JSONNode* const json);
@@ -334,8 +340,18 @@ GDSVecFloatCSVImporter GDSVecFloatCSVImporterCreateStatic(
 // Return true upon success else false
 bool GDSVecFloatSave(
   const GDataSetVecFloat* const that, 
-  FILE* const stream, 
-  const bool compact);
+                    FILE* const stream, 
+                     const bool compact);
+
+// Save the category 'iCat' of the GDataSetVecFloat to the stream
+// If 'compact' equals true it saves in compact form, else it saves in 
+// readable form
+// Return true upon success else false
+bool GDSVecFloatSaveCategory(
+  const GDataSetVecFloat* const that, 
+                    FILE* const stream, 
+                     const bool compact,
+                      const int iCat);
 
 // Run the prediction by the NeuraNet 'nn' on each sample of the category
 // 'iCat' of the GDataSet 'that'. The index of columns in the samples

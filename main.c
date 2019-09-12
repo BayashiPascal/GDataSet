@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
@@ -313,6 +314,51 @@ void UnitTestGDataSetVecFloatCreateFromCSVSave() {
   printf("UnitTestGDataSetVecFloatCreateFromCSVSave OK\n");
 }
 
+void UnitTestGDataSetVecFloatSaveCategory() {
+  char* csvPath = "./unitTestVecFloatCSV.csv";
+  GDSVecFloatCSVImporter importer = 
+    GDSVecFloatCSVImporterCreateStatic(
+      1,
+      ',',
+      3,
+      3,
+      &VecFloatCSVImporter);
+  GDataSetVecFloat dataset = 
+    GDataSetCreateStaticFromCSV(
+      csvPath, 
+      &importer);
+  VecShort2D split = VecShortCreateStatic2D();
+  VecSet(&split, 0, 1);
+  VecSet(&split, 1, 2);
+  GDSSplit(&dataset, (VecShort*)&split);
+  FILE* stream = fopen("./unitTestVecFloatSaveCategory.json", "w");
+  GDSVecFloatSaveCategory(
+    &dataset, 
+    stream, 
+    true, 
+    1);
+  fclose(stream);
+  GDataSetVecFloat load = 
+    GDataSetVecFloatCreateStaticFromFile(
+      "./unitTestVecFloatSaveCategory.json");
+  float check[] = {
+    10.0,3.0,4.0,
+    20.0,5.0,6.0};
+  for (int iSample = 0; iSample < GDSGetSize(&load); ++iSample) {
+    for (unsigned int iCol = 0; iCol < importer._nbCol; ++iCol) {
+      if (ISEQUALF(check[iSample * importer._nbCol + iCol],
+        VecGet(GSetGet(GDSSamples(&load), iSample), iCol)) == false) {
+        GDataSetErr->_type = PBErrTypeUnitTestFailed;
+        sprintf(GDataSetErr->_msg, "GDataSetVecFloatSaveCategory failed");
+        PBErrCatch(GDataSetErr);
+      }
+    }
+  }
+  GDataSetVecFloatFreeStatic(&dataset);
+  GDataSetVecFloatFreeStatic(&load);
+  printf("UnitTestGDataSetVecFloatCreateFromCSVSave OK\n");
+}
+
 void UnitTestGDataSetVecFloat() {
   UnitTestGDataSetVecFloatCreateFreeClone();
   UnitTestGDataSetVecFloatGet();
@@ -322,6 +368,7 @@ void UnitTestGDataSetVecFloat() {
   UnitTestGDataSetVecFloatCovariance();
   UnitTestGDataSetVecFloatNormalize();
   UnitTestGDataSetVecFloatCreateFromCSVSave();
+  UnitTestGDataSetVecFloatSaveCategory();
 }
 
 void UnitTestGDataSetGenBrushPair() {

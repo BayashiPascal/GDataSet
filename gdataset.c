@@ -298,11 +298,11 @@ void GDataSetVecFloatFreeStatic(GDataSetVecFloat* const that) {
   if (that == NULL)
     return;
   // Free memory
-  GDataSetFreeStatic((GDataSet*)that);
   while (GSetNbElem(&(((GDataSet*)that)->_samples)) > 0) {
     VecFloat* sample = GSetPop(&(((GDataSet*)that)->_samples));
     VecFree(&sample);
   }
+  GDataSetFreeStatic((GDataSet*)that);
 }
 
 // Create a new GDataSetGenBrushPair defined by the file at 'cfgFilePath'
@@ -1010,7 +1010,7 @@ JSONNode* GDataSetVecFloatEncodeAsJSON(
   sprintf(val, "%d", that->_dataSet._type);
   JSONAddProp(json, "dataSetType", val);
   JSONAddProp(json, "desc", that->_dataSet._desc);
-  sprintf(val, "%d", that->_dataSet._nbSample);
+  sprintf(val, "%ld", GDSGetSize(that));
   JSONAddProp(json, "nbSample", val);
   JSONAddProp(json, "dim", VecEncodeAsJSON(that->_dataSet._sampleDim));
   JSONArrayStruct samples = JSONArrayStructCreateStatic();
@@ -1027,14 +1027,55 @@ JSONNode* GDataSetVecFloatEncodeAsJSON(
   return json;
 }
 
+// Function which return the JSON encoding of the category 'iCat'
+// of'that' 
+JSONNode* GDataSetVecFloatEncodeCategoryAsJSON(
+  const GDataSetVecFloat* const that,
+             const unsigned int iCat) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Create the JSON structure
+  JSONNode* json = JSONCreate();
+
+  // Declare a buffer to convert value into string
+  char val[100];
+
+  // Encode the properties
+  JSONAddProp(json, "dataSet", that->_dataSet._name);
+  sprintf(val, "%d", that->_dataSet._type);
+  JSONAddProp(json, "dataSetType", val);
+  JSONAddProp(json, "desc", that->_dataSet._desc);
+  sprintf(val, "%ld", GDSGetSizeCat(that, iCat));
+  JSONAddProp(json, "nbSample", val);
+  JSONAddProp(json, "dim", VecEncodeAsJSON(that->_dataSet._sampleDim));
+  JSONArrayStruct samples = JSONArrayStructCreateStatic();
+  GDSReset(that, iCat);
+  do {
+    VecFloat* sample = GDSGetSample(that, iCat);
+    JSONArrayStructAdd(&samples, 
+      VecEncodeAsJSON(sample));
+    VecFree(&sample);
+  } while (GDSStepSample(that, iCat));
+  JSONAddProp(json, "samples", &samples);
+  JSONArrayStructFlush(&samples);
+
+  // Return the created JSON 
+  return json;
+}
+
 // Save the GDataSetVecFloat to the stream
 // If 'compact' equals true it saves in compact form, else it saves in 
 // readable form
 // Return true upon success else false
 bool GDSVecFloatSave(
   const GDataSetVecFloat* const that, 
-  FILE* const stream, 
-  const bool compact) {
+                    FILE* const stream, 
+                     const bool compact) {
 #if BUILDMODE == 0
   if (that == NULL) {
     GDataSetErr->_type = PBErrTypeNullPointer;
@@ -1049,6 +1090,41 @@ bool GDSVecFloatSave(
 #endif
   // Get the JSON encoding
   JSONNode* json = GDataSetVecFloatEncodeAsJSON(that);
+  // Save the JSON
+  if (!JSONSave(json, stream, compact)) {
+    return false;
+  }
+  // Free memory
+  JSONFree(&json);
+  // Return success code
+  return true;
+}
+
+// Save the category 'iCat' of the GDataSetVecFloat to the stream
+// If 'compact' equals true it saves in compact form, else it saves in 
+// readable form
+// Return true upon success else false
+bool GDSVecFloatSaveCategory(
+  const GDataSetVecFloat* const that, 
+                    FILE* const stream, 
+                     const bool compact,
+                      const int iCat) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(GDataSetErr->_msg, "'that' is null");
+    PBErrCatch(GDataSetErr);
+  }
+  if (stream == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(GDataSetErr->_msg, "'stream' is null");
+    PBErrCatch(GDataSetErr);
+  }
+#endif
+  // Get the JSON encoding
+  JSONNode* json = GDataSetVecFloatEncodeCategoryAsJSON(
+    that,
+    iCat);
   // Save the JSON
   if (!JSONSave(json, stream, compact)) {
     return false;
@@ -1128,6 +1204,9 @@ float GDataSetVecFloatEvaluateNN(
   VecFloat* inputNN = VecFloatCreate(NNGetNbInput(nn));
   VecFloat* outputNN = VecFloatCreate(NNGetNbOutput(nn));
   VecFloat* outputSample = VecFloatCreate(NNGetNbOutput(nn));
+
+  // Reset the iterator on samples
+  GDSReset(that, iCat);
   
   // Loop on the samples of the requested category
   do {
