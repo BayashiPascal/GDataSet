@@ -160,7 +160,7 @@ void GDataSetGenBrushPairFreeStatic(GDataSetGenBrushPair* const that);
 
 // Get the total number of samples in the GDataSet 'that'
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 long _GDSGetSize(const GDataSet* const that);
 
@@ -169,14 +169,14 @@ int _GDSGetNbMask(const GDataSet* const that);
 
 // Get the number of masks in the GDataSetGenBrushPair 'that'
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 int GDSGetNbMaskGenBrushPair(const GDataSetGenBrushPair* const that);
 
 // Get the total number of samples in the GDataSet 'that' for the 
 // category 'iCat'. Return 0 if the category doesn't exists
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 long _GDSGetSizeCat(const GDataSet* const that, const long iCat);
 
@@ -194,52 +194,52 @@ void _GDSSplit(GDataSet* const that, const VecShort* const cat);
 // Unsplit the GDataSet 'that', i.e. after calling GDataSetUnsplit 'that' 
 // has only one category containing all the samples
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 void _GDSUnsplit(GDataSet* const that);
 
 // Shuffle the samples of the category 'iCat' of the GDataSet 'that'.
 // Reset the iterator of the category
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 void _GDSShuffle(GDataSet* const that, const long iCat);
 
 // Shuffle the samples of all the categories of the GDataSet 'that'.
 // Reset the iterator of the categories
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 void _GDSShuffleAll(GDataSet* const that);
 
 // Get the name of the GDataSet 'that'
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 const char* _GDSName(const GDataSet* const that);
 
 // Get the description of the GDataSet 'that'
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 const char* _GDSDesc(const GDataSet* const that);
 
 // Get the type of the GDataSet 'that'
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 GDataSetType _GDSGetType(const GDataSet* const that);
 
 // Get the number of categories of the GDataSet 'that'
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 long _GDSGetNbCat(const GDataSet* const that);
 
 // If there is a next sample move to the next sample of the category 
 // 'iCat' and return true, else return false
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 bool _GDSStepSample(const GDataSet* const that, const long iCat);
 
@@ -247,13 +247,13 @@ bool _GDSStepSample(const GDataSet* const that, const long iCat);
 // the next call to GDataSetGetNextSample will give the first sample of 
 // the category 'iCat'
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 void _GDSReset(GDataSet* const that, const long iCat);
 
 // Reset the iterator on all categories of the GDataSet 'that'
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 void _GDSResetAll(GDataSet* const that);
 
@@ -274,22 +274,22 @@ void GDSGenBrushPairFree(GDSGenBrushPair** const that);
 
 // Get the dimensions of the samples of GDataSet 'that'
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 const VecShort* _GDSSampleDim(const GDataSet* const that);
 
 // Get the samples of the GDataSet 'that'
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 const GSet* _GDSSamples(const GDataSet* const that);
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 const GSetVecFloat* _GDSVecFloatSamples(
   const GDataSetVecFloat* const that);
 #if BUILDMODE != 0
-inline
+static inline
 #endif 
 const GSet* _GDSGenBrushPairSamples(
   const GDataSetGenBrushPair* const that);
@@ -526,7 +526,7 @@ GDataSetVecFloat GDataSetVecFloatCreateStatic();
   default: PBErrInvalidPolymorphism)( \
     GDS, NN, Cat, Inputs, Outputs, Threshold)
 
-// ================ Inliner ====================
+// ================ static inliner ====================
 
 #if BUILDMODE != 0
 #include "gdataset-inline.c"
