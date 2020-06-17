@@ -1,1 +1,1 @@
-{"dataSet":"./unitTestVecFloatCSV.csv","dataSetType":"0","desc":"./unitTestVecFloatCSV.csv","nbSample":"2","dim":{"_dim":"1","_val":"3"},"samples":[{"_dim":"3","_val":["10.000000","3.000000","4.000000"]},{"_dim":"3","_val":["20.000000","5.000000","6.000000"]}]}
+{"dataSet":"./unitTestVecFloatCSV.csv","dataSetType":"0","desc":"./unitTestVecFloatCSV.csv","nbSample":"2","dim":{"_dim":"1","_val":"3"},"samples":[{"_dim":"3","_val":["20.000000","5.000000","6.000000"]},{"_dim":"3","_val":["10.000000","1.000000","2.000000"]}]}

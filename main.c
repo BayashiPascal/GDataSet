@@ -342,8 +342,8 @@ void UnitTestGDataSetVecFloatSaveCategory() {
     GDataSetVecFloatCreateStaticFromFile(
       "./unitTestVecFloatSaveCategory.json");
   float check[] = {
-    10.0,3.0,4.0,
-    20.0,5.0,6.0};
+    20.0,5.0,6.0,
+    10.0,1.0,2.0};
   for (int iSample = 0; iSample < GDSGetSize(&load); ++iSample) {
     for (unsigned int iCol = 0; iCol < importer._nbCol; ++iCol) {
       if (ISEQUALF(check[iSample * importer._nbCol + iCol],

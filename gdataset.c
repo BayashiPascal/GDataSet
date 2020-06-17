@@ -51,6 +51,8 @@ bool GDataSetLoad(GDataSet* that, FILE* const stream) {
   if (!GDataSetDecodeAsJSON(that, json)) {
     return false;
   }
+  // Initialise the categories
+  GDSResetCategories(that);
   // Free memory
   JSONFree(&json);
   // Return the success code
@@ -534,7 +536,7 @@ void _GDSSplit(GDataSet* const that, const VecShort* const cat) {
     // Get the nb of samples for this category
     long nbSample = VecGet(cat, iCat);
     // Loop on the sample
-    for (long iSample = nbSample; iSample--; GSetIterStep(&iter)) {
+    for (long iSample = nbSample; iSample-- && GSetIterStep(&iter);) {
       // Get the next sample
       void* sample = GSetIterGet(&iter);
       // Add the sample to the category
