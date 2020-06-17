@@ -29,6 +29,33 @@ GDataSet GDataSetCreateStatic(GDataSetType type) {
 
 // Load the GDataSet 'that' from the stream 'stream'
 // Return true if the GDataSet could be loaded, false else
+bool GDataSetLoad(GDataSet* that, FILE* const stream) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+  if (stream == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'stream' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Load the whole encoded data
+  JSONNode* json = JSONCreate();
+  if (!JSONLoad(json, stream)) {
+    return false;
+  }
+  // Decode the JSON
+  if (!GDataSetDecodeAsJSON(that, json)) {
+    return false;
+  }
+  // Free memory
+  JSONFree(&json);
+  // Return the success code
+  return true;
+}
 bool _GDSLoad(GDataSet* that, FILE* const stream) {
 #if BUILDMODE == 0
   if (that == NULL) {

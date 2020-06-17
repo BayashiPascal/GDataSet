@@ -2,9 +2,9 @@
 \contentsline {section}{\numberline {2}Code}{11}
 \contentsline {subsection}{\numberline {2.1}gdataset.c}{11}
 \contentsline {subsection}{\numberline {2.2}gdataset-inline.c}{32}
-\contentsline {section}{\numberline {3}Makefile}{37}
+\contentsline {section}{\numberline {3}Makefile}{38}
 \contentsline {section}{\numberline {4}Dataset configuration file}{38}
 \contentsline {subsection}{\numberline {4.1}VecFloat}{38}
-\contentsline {subsection}{\numberline {4.2}Pair of GenBrush}{39}
+\contentsline {subsection}{\numberline {4.2}Pair of GenBrush}{40}
 \contentsline {section}{\numberline {5}Unit tests}{40}
 \contentsline {section}{\numberline {6}Unit test output}{48}

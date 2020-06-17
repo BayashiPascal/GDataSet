@@ -117,6 +117,7 @@ void GDataSetFreeStatic(GDataSet* const that);
 
 // Load the GDataSet 'that' from the stream 'stream'
 // Return true if the GDataSet could be loaded, false else
+bool GDataSetLoad(GDataSet* that, FILE* const stream);
 bool _GDSLoad(GDataSet* that, FILE* const stream);
 
 // Function which decode from JSON encoding 'json' to 'that'
@@ -527,6 +528,7 @@ GDataSetVecFloat GDataSetVecFloatCreateStatic();
     GDS, NN, Cat, Inputs, Outputs, Threshold)
 
 #define GDSLoad(DataSet, FP) _Generic(DataSet, \
+  GDataSet*: GDataSetLoad, \
   GDataSetVecFloat*: _GDSLoad, \
   GDataSetGenBrushPair*: _GDSLoad, \
   default: PBErrInvalidPolymorphism)((GDataSet*)DataSet, FP)
