@@ -29,7 +29,7 @@ GDataSet GDataSetCreateStatic(GDataSetType type) {
 
 // Load the GDataSet 'that' from the stream 'stream'
 // Return true if the GDataSet could be loaded, false else
-bool GDataSetLoad(GDataSet* that, FILE* const stream) {
+bool _GDSLoad(GDataSet* that, FILE* const stream) {
 #if BUILDMODE == 0
   if (that == NULL) {
     GDataSetErr->_type = PBErrTypeNullPointer;
@@ -48,11 +48,31 @@ bool GDataSetLoad(GDataSet* that, FILE* const stream) {
     return false;
   }
   // Decode the JSON
-  if (!GDataSetDecodeAsJSON(that, json)) {
+  GDataSet dataset = GDataSetCreateStatic(0);
+  if (!GDataSetDecodeAsJSON(&dataset, json)) {
     return false;
   }
-  // Initialise the categories
-  GDSResetCategories(that);
+  if (GDSGetType(&dataset) != GDSGetType(that)) {
+    return false;
+  } else {
+    *that = dataset;
+  }
+  // Decode the samples according to the type of dataset
+  switch(GDSGetType(that)) {
+    case GDataSetType_VecFloat:
+      if (!GDataSetVecFloatDecodeAsJSON((GDataSetVecFloat*)that, json)) {
+        return false;
+      }
+      break;
+    case GDataSetType_GenBrushPair:
+      if (!GDataSetGenBrushPairDecodeAsJSON(
+        (GDataSetGenBrushPair*)that, json)) {
+        return false;
+      }
+      break;
+    default:
+      return false;
+  }
   // Free memory
   JSONFree(&json);
   // Return the success code

@@ -497,6 +497,7 @@ void UnitTestAll() {
 
 int main(void) {
   UnitTestAll();
+
   return 0;
 }
 
