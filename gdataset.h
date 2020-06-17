@@ -462,7 +462,7 @@ GDataSetVecFloat GDataSetVecFloatCreateStatic();
   const GDataSetVecFloat*: _GDSResetAll, \
   GDataSetGenBrushPair*: _GDSResetAll, \
   const GDataSetGenBrushPair*: _GDSResetAll, \
-  default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet)
+  default: PBErrInvalidPolymorphism)((GDataSet*)DataSet)
 
 #define GDSSampleDim(DataSet) _Generic(DataSet, \
   GDataSet*: _GDSSampleDim, \
