@@ -356,7 +356,34 @@ void UnitTestGDataSetVecFloatSaveCategory() {
   }
   GDataSetVecFloatFreeStatic(&dataset);
   GDataSetVecFloatFreeStatic(&load);
-  printf("UnitTestGDataSetVecFloatCreateFromCSVSave OK\n");
+  printf("UnitTestGDataSetVecFloatSaveCategory OK\n");
+}
+
+void UnitTestGDataSetVecFloatAddRemoveSample() {
+  char* cfgFilePath = "testGDataSetVecFloatNormalize.json";
+  GDataSetVecFloat dataset = 
+    GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
+  VecShort2D split = VecShortCreateStatic2D();
+  VecSet(&split, 0, 1);
+  VecSet(&split, 1, 2);
+  GDSSplit(&dataset, (VecShort*)&split);
+  GDSRemoveAllSample(&dataset);
+  if (GDSGetNbCat(&dataset) != 1 ||
+    GDSGetSize(&dataset) != 0) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSVecFloatRemoveAllSample failed");
+    PBErrCatch(GDataSetErr);
+  }
+  VecFloat* sample = VecFloatCreate(3);
+  GDSAddSample(&dataset, sample);
+  if (GDSGetNbCat(&dataset) != 1 ||
+    GDSGetSize(&dataset) != 1) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSVecFloatAddSample failed");
+    PBErrCatch(GDataSetErr);
+  }
+  GDataSetVecFloatFreeStatic(&dataset);
+  printf("UnitTestGDataSetVecFloatAddRemoveSample OK\n");
 }
 
 void UnitTestGDataSetVecFloat() {
@@ -369,6 +396,7 @@ void UnitTestGDataSetVecFloat() {
   UnitTestGDataSetVecFloatNormalize();
   UnitTestGDataSetVecFloatCreateFromCSVSave();
   UnitTestGDataSetVecFloatSaveCategory();
+  UnitTestGDataSetVecFloatAddRemoveSample();
 }
 
 void UnitTestGDataSetGenBrushPair() {

@@ -6,7 +6,8 @@ UnitTestGDataSetVecFloatStepSampleGetSample OK
 UnitTestGDataSetVecFloatCovariance OK
 UnitTestGDataSetVecFloatNormalize OK
 UnitTestGDataSetVecFloatCreateFromCSVSave OK
-UnitTestGDataSetVecFloatCreateFromCSVSave OK
+UnitTestGDataSetVecFloatSaveCategory OK
+UnitTestGDataSetVecFloatAddRemoveSample OK
 UnitTestGDataSetGenBrushPair OK
 UnitTestNNEval OK
 UnitTestSDSIA OK

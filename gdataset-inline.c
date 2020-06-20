@@ -323,4 +323,109 @@ const GSet* _GDSGenBrushPairSamples(
   return &(that->_dataSet._samples);
 }
 
+// Remove all the samples of the GDataSetVecFloat 'that'
+#if BUILDMODE != 0
+static inline
+#endif
+void _GDSVecFloatRemoveAllSample(GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  while (GSetNbElem(GDSSamples(that)) > 0) {
+    VecFloat* sample = GSetPop((GSet*)GDSSamples(that));
+    VecFree(&sample);
+  }
+  that->_dataSet._nbSample = 0;
+  GDSUnsplit(that);
+}
 
+// Remove all the samples of the GDataSetGenBrushPair 'that'
+#ifdef GENBRUSH_H
+#if BUILDMODE != 0
+static inline
+#endif 
+void _GDSGenBrushPairRemoveAllSample(GDataSetGenBrushPair* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  while (GSetNbElem(GDSSamples(that)) > 0) {
+    GDSGenBrushPair* sample = GSetPop((GSet*)GDSSamples(that));
+    GDSGenBrushPairFree(&sample);
+  }
+  that->_dataSet._nbSample = 0;
+  GDSUnsplit(that);
+}
+#endif 
+
+// Append 'sample' in the GDataSetVecFloat 'that'
+#if BUILDMODE != 0
+static inline
+#endif 
+void _GDSVecFloatAddSample(
+  GDataSetVecFloat* const that,
+  VecFloat* sample) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+  if (sample == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'sample' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+  if (VecGetDim(sample) != VecGet(GDSSampleDim(that), 0)) {
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(PBImgAnalysisErr->_msg,
+      "'sample' has invalid dimensions (%ld!=%d)",
+      VecGetDim(sample), VecGet(GDSSampleDim(that), 0));
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  GSetAppend((GSet*)GDSSamples(that), sample);
+  that->_dataSet._nbSample += 1;
+}
+
+// Append 'sample' in the GDataSetGenBrush 'that'
+#ifdef GENBRUSH_H
+#if BUILDMODE != 0
+static inline
+#endif 
+void _GDSGenBrushPairAddSample(
+  GDataSetGenBrushPair* const that,
+  GDSGenBrushPair* sample) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+  if (sample == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'sample' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+  if (VecIsEqual(GBDim(sample), GDSSampleDim(&dataset)) == FALSE) {
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(PBImgAnalysisErr->_msg,
+      "'sample' has invalid dimensions ((%ld,%ld)!=(%ld,%ld))",
+      VecGet(GBDim(sample), 0),
+      VecGet(GBDim(sample), 1),
+      VecGet(GDSSampleDim(&dataset), 0),
+      VecGet(GDSSampleDim(&dataset), 1));
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  GSetAppend((GSet*)GDSSamples(that), sample);
+  that->_dataSet._nbSample += 1;
+}
+#endif 

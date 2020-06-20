@@ -356,17 +356,16 @@ bool GDSVecFloatSaveCategory(
 
 // Run the prediction by the NeuraNet 'nn' on each sample of the category
 // 'iCat' of the GDataSet 'that'. The index of columns in the samples
-// for inputs and outputs are given by 'inputs' and 'outputs'.
-// input values in [-1,1] and output values in [-1,1]
+// for inputs and outputs are given by 'iInputs' and 'iOutputs'.
 // Stop the prediction of samples when the result can't get better
-// than 'threhsold'
+// than 'threshold'
 // Return the value of the NeuraNet on the predicted samples, defined
 // as sum_samples(||output_sample-output_neuranet||)/nb_sample
 // Higher is better, 0.0 is best value
 float GDataSetVecFloatEvaluateNN(
   const GDataSetVecFloat* const that, 
   const NeuraNet* const nn, 
-  const long iCat, 
+  const int iCat, 
   const VecShort* const iInputs,
   const VecShort* const iOutputs,
   const float threshold);
@@ -374,7 +373,49 @@ float GDataSetVecFloatEvaluateNN(
 // Create a new GDataSetVecFloat
 GDataSetVecFloat GDataSetVecFloatCreateStatic();
 
+// Remove all the samples of the GDataSetVecFloat 'that'
+#if BUILDMODE != 0
+static inline
+#endif
+void _GDSVecFloatRemoveAllSample(GDataSetVecFloat* const that);
+
+// Remove all the samples of the GDataSetGenBrushPair 'that'
+#ifdef GENBRUSH_H
+#if BUILDMODE != 0
+static inline
+#endif 
+void _GDSGenBrushPairRemoveAllSample(GDataSetGenBrushPair* const that);
+#endif 
+
+// Append 'sample' in the GDataSetVecFloat 'that'
+#if BUILDMODE != 0
+static inline
+#endif 
+void _GDSVecFloatAddSample(
+  GDataSetVecFloat* const that,
+  VecFloat* sample);
+
+// Append 'sample' in the GDataSetGenBrush 'that'
+#ifdef GENBRUSH_H
+#if BUILDMODE != 0
+static inline
+#endif 
+void _GDSGenBrushPairAddSample(
+  GDataSetGenBrushPair* const that,
+  GDSGenBrushPair* sample);
+#endif 
+
 // ================= Polymorphism ==================
+
+#define GDSRemoveAllSample(DataSet) _Generic(DataSet, \
+  GDataSetVecFloat*: _GDSVecFloatRemoveAllSample, \
+  GDataSetGenBrushPair*: _GDSGenBrushPairRemoveAllSample, \
+  default: PBErrInvalidPolymorphism)(DataSet)
+
+#define GDSAddSample(DataSet, Sample) _Generic(DataSet, \
+  GDataSetVecFloat*: _GDSVecFloatAddSample, \
+  GDataSetGenBrushPair*: _GDSGenBrushPairAddSample, \
+  default: PBErrInvalidPolymorphism)(DataSet, Sample)
 
 #define GDSDesc(DataSet) _Generic(DataSet, \
   GDataSet*: _GDSDesc, \
