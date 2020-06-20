@@ -29,6 +29,8 @@ GenBrush* GBScale(const GenBrush* const that,
   const VecShort2D* const dim, const GBScaleMethod scaleMethod);
 void GBFree(GenBrush** that);
 VecShort2D* GBDim(const GenBrush* const that);
+void _GDSGenBrushPairRemoveAllSample();
+void _GDSGenBrushPairAddSample();
 #endif
 
 // ================= Define ==================
