@@ -7,4 +7,4 @@
 \contentsline {subsection}{\numberline {4.1}VecFloat}{41}
 \contentsline {subsection}{\numberline {4.2}Pair of GenBrush}{42}
 \contentsline {section}{\numberline {5}Unit tests}{43}
-\contentsline {section}{\numberline {6}Unit test output}{51}
+\contentsline {section}{\numberline {6}Unit test output}{52}

@@ -304,6 +304,9 @@ void GDSNormalize(GDataSetVecFloat* const that);
 // Get the mean of the GDataSet 'that'
 VecFloat* GDSGetMean(const GDataSetVecFloat* const that);
 
+// Get the max of the GDataSet 'that'
+VecFloat* GDSGetMax(const GDataSetVecFloat* const that);
+
 // Get a clone of the GDataSet 'that'
 // All the data in the GDataSet are cloned except for the splitting
 // categories which are reset to one category made of the original data

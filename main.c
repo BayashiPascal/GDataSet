@@ -93,6 +93,16 @@ void UnitTestGDataSetVecFloatGet() {
     PBErrCatch(GDataSetErr);
   }
   VecFree(&mean);
+  VecFloat* max = GDSGetMax(&gdataset);
+  VecFloat2D checkMax = VecFloatCreateStatic2D();
+  VecSet(&checkMax, 0, 4.0);
+  VecSet(&checkMax, 1, 5.0);
+  if (!VecIsEqual(max, &checkMax)) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSGetMax failed");
+    PBErrCatch(GDataSetErr);
+  }
+  VecFree(&max);
   GDSMeanCenter(&gdataset);
   VecFloat2D checkMeanCenter[3];
   for (int i = 0; i < GDSGetSize(&gdataset); ++i) {

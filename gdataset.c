@@ -789,6 +789,37 @@ VecFloat* GDSGetMean(const GDataSetVecFloat* const that) {
   return mean;
 }
 
+// Get the max of the GDataSet 'that'
+VecFloat* GDSGetMax(const GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Get the dimension of the samples
+  const VecShort* dim = GDSSampleDim(that);
+  // Create a vector to calculate the max
+  int d = VecGet(dim, 0);
+  VecFloat* max = VecFloatCreate(d);
+  // Calculate the mx
+  if (GDSGetSize(that) > 0) {
+    GSetIterForward iter = 
+      GSetIterForwardCreateStatic(GDSSamples(that));
+    VecFloat* v = GSetIterGet(&iter);
+    VecCopy(max, v);
+    do {
+      v = GSetIterGet(&iter);
+      for (int i = d; i--;)
+        if (VecGet(max, i) < VecGet(v, i))
+          VecSet(max, i, VecGet(v, i));
+    } while(GSetIterStep(&iter));
+  }
+  // Return the result
+  return max;
+}
+
 // Get a clone of the GDataSet 'that'
 // All the data in the GDataSet are cloned except for the splitting
 // categories which are reset to one category made of the original data
