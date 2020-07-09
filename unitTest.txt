@@ -8,13 +8,13 @@ UnitTestGDataSetVecFloatNormalize OK
 UnitTestGDataSetVecFloatCreateFromCSVSave OK
 UnitTestGDataSetVecFloatSaveCategory OK
 UnitTestGDataSetVecFloatAddRemoveSample OK
-size: 100, ratio bruteForce/AESA: 0.097640
-size: 200, ratio bruteForce/AESA: 0.056180
-size: 400, ratio bruteForce/AESA: 0.026662
-size: 800, ratio bruteForce/AESA: 0.024791
-size: 1600, ratio bruteForce/AESA: 0.005881
-size: 3200, ratio bruteForce/AESA: 0.001788
-size: 6400, ratio bruteForce/AESA: 0.000696
+size: 100, ratio bruteForce/AESA: 0.091176
+size: 200, ratio bruteForce/AESA: 0.059310
+size: 400, ratio bruteForce/AESA: 0.035324
+size: 800, ratio bruteForce/AESA: 0.017325
+size: 1600, ratio bruteForce/AESA: 0.005060
+size: 3200, ratio bruteForce/AESA: 0.001490
+size: 6400, ratio bruteForce/AESA: 0.000697
 UnitTestGDataSetVecFloatProxMatNearestNeighbour OK
 UnitTestGDataSetGenBrushPair OK
 UnitTestNNEval OK

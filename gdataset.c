@@ -1342,7 +1342,7 @@ float GDataSetVecFloatEvaluateNN(
 }
 
 // Create a new GDataSetVecFloat
-GDataSetVecFloat GDataSetVecFloatCreateStatic() {
+GDataSetVecFloat GDataSetVecFloatCreateStatic(void) {
   // Declare the result GDataSetVecFloat
   GDataSetVecFloat that;
   
@@ -1351,5 +1351,373 @@ GDataSetVecFloat GDataSetVecFloatCreateStatic() {
   
   // Return the dataset
   return that;
+}
+
+// Get the proximity matrix of the samples of category 'iCat' in the
+// GDataSetVecFloat 'that'
+// M[i,j] = euclidean distance between the i-th sample and the j-th sample
+MatFloat* GDSVecFloatGetProxMat(
+  const GDataSetVecFloat* that,
+             unsigned int iCat) {
+
+#if BUILDMODE == 0
+
+  if (that == NULL) {
+
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(
+      GDataSetErr->_msg,
+      "'that' is null");
+    PBErrCatch(GDataSetErr);
+
+  }
+
+#endif
+
+  // Allocate memory for the result matrix
+  long nbSamples =
+    GDSGetSizeCat(
+      that,
+      iCat);
+  VecShort2D v = VecShortCreateStatic2D();
+  VecSet(
+    &v,
+    0,
+    nbSamples);
+  VecSet(
+    &v,
+    1,
+    nbSamples);
+  MatFloat* proxMat = MatFloatCreate(&v);
+
+  // Declare another vector used to manipulate the matrix
+  VecShort2D w = VecShortCreateStatic2D();
+
+  // Declare two variables to memorize the indices of samples
+  long iSample = 0;
+  long jSample = 0;
+
+  // Loop on the samples of the category
+  GDSReset(
+    that,
+    iCat);
+  bool flagStepI = true;
+  bool flagStepJ = true;
+  do {
+
+    // Get the sample
+    VecFloat* sampleI = GSetIterGet(((GDataSet*)that)->_iterators + iCat);
+
+    // Update the index to manipulate the matrix
+    VecSet(
+      &v,
+      0,
+      iSample);
+    VecSet(
+      &w,
+      1,
+      iSample);
+
+    // Create a temporary iterator to loop on the following sample
+    GSetIterForward iterJ = ((GDataSet*)that)->_iterators[iCat];
+    jSample = iSample;
+
+    // Loop on the following samples
+    do {
+
+      // Get the following sample
+      VecFloat* sampleJ = GSetIterGet(&iterJ);
+
+      // Get the distance between the sample and the following sample
+      float dist = 0.0;
+      if (iSample != jSample) {
+
+        dist =
+          VecDist(
+            sampleI,
+            sampleJ);
+
+      }
+
+      // Update the index to manipulate the matrix
+      VecSet(
+        &v,
+        1,
+        jSample);
+      VecSet(
+        &w,
+        0,
+        jSample);
+
+      // Update the proximity matrix
+      MatSet(
+        proxMat,
+        &v,
+        dist);
+      MatSet(
+        proxMat,
+        &w,
+        dist);
+
+      // Step to the next following sample
+      flagStepJ = GSetIterStep(&iterJ);
+      ++jSample;
+
+    } while (flagStepJ);
+
+    // Step to the next sample
+    flagStepI =
+      GDSStepSample(
+        that,
+        iCat);
+    ++iSample;
+
+  } while (flagStepI);
+
+  // Return the proximity matrix
+  return proxMat;
+
+}
+
+// Get the nearest (in term of euclidean distance) sample of category
+// 'iCat' to 'target' in the GDataSetVecFloat 'that' using the AESA
+// nearest neighbour search
+// TODO: should use a lookup table to get VecDist(sample, prevCandidate)
+// but it's complicated by the fact I'm loosing the index of samples when
+// using GSet
+// Also, even if using a lookup table, and even if AESA actually reduces
+// efficiently the number of VecDist(candidate, target), the cost of 
+// VecDist() much be hugely bigger than the one of using a lookup table
+// to make AESA relevant. It's probably meaningless on a VecFloat,
+// maybe more meaningful on a GenBrush ?
+// http://citeseerx.ist.psu.edu/viewdoc/download?
+// doi=10.1.1.481.2200&rep=rep1&type=pdf
+VecFloat* GDSVecFloatNearestNeighbourAESA(
+  const GDataSetVecFloat* that,
+          const VecFloat* target,
+                      int iCat) {
+
+#if BUILDMODE == 0
+
+  if (that == NULL) {
+
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(
+      GDataSetErr->_msg,
+      "'that' is null");
+    PBErrCatch(GDataSetErr);
+
+  }
+
+  if (target == NULL) {
+
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(
+      GDataSetErr->_msg,
+      "'target' is null");
+    PBErrCatch(GDataSetErr);
+
+  }
+
+#endif
+
+  // Declare the pointer to the result sample
+  VecFloat* nearestNeighbour = NULL;
+
+  // Declare a variable to store the best distance
+  float bestDist = -1.0;
+
+  // Create the set of examined samples
+  GSet done = GSetCreateStatic();
+
+  // Create the set of not yet examined samples 
+  GSet todo = GSetCreateStatic();
+  GDSReset(
+    that,
+    iCat);
+  bool flagStep = true;
+  do {
+
+    VecFloat* sample = GSetIterGet(((GDataSet*)that)->_iterators + iCat);
+    GSetAppend(
+      &todo,
+      sample);
+    flagStep =
+      GDSStepSample(
+        that,
+        iCat);
+
+  } while(flagStep);
+
+  // Declare the pointer to the candidate sample and initialise it
+  // to the first sample not yet examined
+  VecFloat* candidate = GSetPop(&todo);
+
+  // While there is a candidate to examined
+  while(candidate != NULL) {
+
+    // Get the distance from the candidate to the target
+    float distCandidate =
+      VecDist(
+        candidate,
+        target);
+
+    // Add the candidate to the set of examined samples sorted on
+    // their distance to the target
+    GSetAddSort(
+      &done,
+      candidate,
+      distCandidate);
+
+    // If there is no current best or the distance is less than the
+    // current best
+    if (
+      bestDist < 0.0 ||
+      distCandidate < bestDist) {
+
+      // Update the current best
+      bestDist = distCandidate;
+      nearestNeighbour = candidate;
+
+    }
+
+    // Create a temporary set to update the lower bound
+    GSet update = GSetCreateStatic();
+
+    // For each sample not yet examined
+    while(GSetNbElem(&todo) > 0) {
+
+      // Get the sample
+      VecFloat* sample = GSetPop(&todo);
+
+      // Get the lower bound of the sample
+      float lowerBound = 0.0;
+      GSetIterForward iter = GSetIterForwardCreateStatic(&done);
+      do {
+
+        VecFloat* prevCandidate = GSetIterGet(&iter);
+        const GSetElem* elem = GSetIterGetElem(&iter);
+        float l =
+          GSetElemGetSortVal(elem) -
+          VecDist(
+            sample,
+            prevCandidate);
+        if (l > lowerBound) {
+
+          lowerBound = l;
+
+        }
+
+      } while(
+        GSetIterStep(&iter) &&
+        lowerBound < bestDist);
+
+      // Add the sample to the updated set if its lower bound is below
+      // the current best distance
+      if (lowerBound < bestDist) {
+
+        GSetAddSort(
+          &update,
+          sample,
+          lowerBound);
+
+      }
+
+    }
+
+    // Swap the todo and update sets
+    todo = update;
+
+    // Get the next candidate as the one with lowest bound in the list of
+    // not yet examined samples
+    candidate = GSetPop(&todo);
+
+  }
+
+  // Free memory
+  GSetFlush(&done);
+
+  // Return the nearest neighbour
+  return nearestNeighbour;
+
+}
+
+// Get the nearest (in term of euclidean distance) sample of category
+// 'iCat' to 'target' in the GDataSetVecFloat 'that' using brute force
+VecFloat* GDSVecFloatNearestNeighbourBrute(
+  const GDataSetVecFloat* that,
+          const VecFloat* target,
+                      int iCat) {
+
+#if BUILDMODE == 0
+
+  if (that == NULL) {
+
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(
+      GDataSetErr->_msg,
+      "'that' is null");
+    PBErrCatch(GDataSetErr);
+
+  }
+
+  if (target == NULL) {
+
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(
+      GDataSetErr->_msg,
+      "'target' is null");
+    PBErrCatch(GDataSetErr);
+
+  }
+
+#endif
+
+  // Declare the pointer to the result
+  VecFloat* nearest = NULL;
+
+  // Declare a variable to memorize the best distance
+  float bestDist = 0.0;
+
+  // Loop on samples
+  do {
+
+    // Get the sample
+    VecFloat* sample =
+      GDSGetSample(
+        that,
+        iCat);
+
+    // Get the distance to the target
+    float dist =
+      VecDist(
+        target,
+        sample);
+
+    // If there is no nearest yet or the distance is better
+    if (
+      nearest == NULL ||
+      dist < bestDist) {
+
+        // Free memory used by the copy of the current best sample
+        VecFree(&nearest);
+
+        // Update the nearest sample
+        bestDist = dist;
+        nearest = sample;
+
+    // Else, it is farther than the current best
+    } else {
+
+      // Free memory used by the copy of the sample
+      VecFree(&sample);
+
+    }
+
+  } while(GDSStepSample(that, iCat));
+
+  // Return the result
+  return nearest;
+
 }
 

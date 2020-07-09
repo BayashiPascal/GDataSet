@@ -376,7 +376,7 @@ float GDataSetVecFloatEvaluateNN(
   const float threshold);
 
 // Create a new GDataSetVecFloat
-GDataSetVecFloat GDataSetVecFloatCreateStatic();
+GDataSetVecFloat GDataSetVecFloatCreateStatic(void);
 
 // Remove all the samples of the GDataSetVecFloat 'that'
 #if BUILDMODE != 0
@@ -409,6 +409,38 @@ void _GDSGenBrushPairAddSample(
   GDataSetGenBrushPair* const that,
   GDSGenBrushPair* sample);
 #endif 
+
+// Get the proximity matrix of the samples of category 'iCat' in the
+// GDataSetVecFloat 'that'
+// M[i,j] = euclidean distance between the i-th sample and the j-th sample
+MatFloat* GDSVecFloatGetProxMat(
+  const GDataSetVecFloat* that,
+             unsigned int iCat);
+
+// Get the nearest (in term of euclidean distance) sample of category
+// 'iCat' to 'target' in the GDataSetVecFloat 'that' using the AESA
+// nearest neighbour search
+// TODO: should use a lookup table to get VecDist(sample, prevCandidate)
+// but it's complicated by the fact I'm loosing the index of samples when
+// using GSet
+// Also, even if using a lookup table, and even if AESA actually reduces
+// efficiently the number of VecDist(candidate, target), the cost of 
+// VecDist() much be hugely bigger than the one of using a lookup table
+// to make AESA relevant. It's probably meaningless on a VecFloat,
+// maybe more meaningful on a GenBrush ?
+// http://citeseerx.ist.psu.edu/viewdoc/download?
+// doi=10.1.1.481.2200&rep=rep1&type=pdf
+VecFloat* GDSVecFloatNearestNeighbourAESA(
+  const GDataSetVecFloat* that,
+          const VecFloat* target,
+                      int iCat);
+
+// Get the nearest (in term of euclidean distance) sample of category
+// 'iCat' to 'target' in the GDataSetVecFloat 'that' using brute force
+VecFloat* GDSVecFloatNearestNeighbourBrute(
+  const GDataSetVecFloat* that,
+          const VecFloat* target,
+                      int iCat);
 
 // ================= Polymorphism ==================
 
@@ -578,6 +610,17 @@ void _GDSGenBrushPairAddSample(
   GDataSetVecFloat*: _GDSLoad, \
   GDataSetGenBrushPair*: _GDSLoad, \
   default: PBErrInvalidPolymorphism)((GDataSet*)DataSet, FP)
+
+#define GDSGetProxMat(DataSet, Cat) _Generic(DataSet, \
+  GDataSetVecFloat*: GDSVecFloatGetProxMat, \
+  const GDataSetVecFloat*: GDSVecFloatGetProxMat, \
+  default: PBErrInvalidPolymorphism)(DataSet, Cat)
+
+#define GDSNearestNeighbour(DataSet, Target, ICat) \
+  _Generic(DataSet, \
+    GDataSetVecFloat*: GDSVecFloatNearestNeighbourBrute, \
+    const GDataSetVecFloat*: GDSVecFloatNearestNeighbourBrute, \
+    default: PBErrInvalidPolymorphism)(DataSet, Target, ICat)
 
 // ================ static inliner ====================
 

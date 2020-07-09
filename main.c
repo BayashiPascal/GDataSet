@@ -396,6 +396,91 @@ void UnitTestGDataSetVecFloatAddRemoveSample() {
   printf("UnitTestGDataSetVecFloatAddRemoveSample OK\n");
 }
 
+void UnitTestGDataSetVecFloatProxMatNearestNeighbour() {
+  char* cfgFilePath = "testGDataSetVecFloat.json";
+  GDataSetVecFloat dataset = 
+    GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
+  MatFloat* proxMat = GDSGetProxMat(&dataset, 0);
+  float check[3][3] = {{0.0,2.828427,5.656854},{2.828427,0.0,2.828427},{5.656854,2.828427,0.0}};
+  VecShort2D v = VecShortCreateStatic2D();
+  do {
+    if (!ISEQUALF(check[VecGet(&v, 0)][VecGet(&v, 1)], 
+      MatGet(proxMat, &v))) {
+      GDataSetErr->_type = PBErrTypeUnitTestFailed;
+      sprintf(GDataSetErr->_msg, "GDSGetProxMat failed");
+      PBErrCatch(GDataSetErr);
+    }
+  } while(VecStep(&v, MatDim(proxMat)));
+  VecFloat2D target = VecFloatCreateStatic2D();
+  VecSet(&target, 0, 6.0);
+  VecSet(&target, 1, 1.5);
+  VecFloat* nearest =
+    GDSNearestNeighbour(&dataset, (VecFloat*)&target, 0);
+  VecFloat2D checkb = VecFloatCreateStatic2D();
+  VecSet(&checkb, 0, 4.0);
+  VecSet(&checkb, 1, 5.0);
+  if (!VecIsEqual(nearest, &checkb)) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSNearestNeighbour failed");
+    PBErrCatch(GDataSetErr);
+  }
+  VecFree(&nearest);
+  MatFree(&proxMat);
+  GDataSetVecFloatFreeStatic(&dataset);
+
+  srandom(time(NULL));
+  for (int size = 100; size < 10000; size *= 2) {
+    dataset = GDataSetVecFloatCreateStatic();
+    dataset._dataSet._sampleDim = VecShortCreate(1);
+    VecSet(dataset._dataSet._sampleDim, 0, 3);
+    for (int iSample = size; iSample--;) {
+      VecFloat* sample = VecFloatCreate(3);
+      VecSet(sample, 0, (0.5 - rnd()) * 100.0);
+      VecSet(sample, 1, (0.5 - rnd()) * 100.0);
+      VecSet(sample, 2, (0.5 - rnd()) * 100.0);
+      GDSAddSample(&dataset, sample);
+    }
+    VecShort* split = VecShortCreate(1);
+    VecSet(split, 0, size);
+    GDSSplit(&dataset, split);
+    VecFree(&split);
+    float delayAESA = 0.0;
+    float delayBruteForce = 0.0;
+    for (int iCheck = 10; iCheck--;) {
+      VecFloat3D target3d = VecFloatCreateStatic3D();
+      VecSet(&target3d, 0, (0.5 - rnd()) * 100.0);
+      VecSet(&target3d, 1, (0.5 - rnd()) * 100.0);
+      VecSet(&target3d, 2, (0.5 - rnd()) * 100.0);
+
+      GDSResetAll(&dataset);
+      clock_t clockBefore = clock();
+      VecFloat* checkNearest = GDSVecFloatNearestNeighbourBrute(
+        &dataset, (VecFloat*)&target3d, 0);
+      clock_t clockAfter = clock();
+      delayBruteForce += ((double)(clockAfter - clockBefore)) / 
+        CLOCKS_PER_SEC * 1000.0;
+
+      clockBefore = clock();
+      nearest = GDSVecFloatNearestNeighbourAESA(
+        &dataset, (VecFloat*)&target3d, 0);
+      clockAfter = clock();
+      delayAESA += ((double)(clockAfter - clockBefore)) / 
+        CLOCKS_PER_SEC * 1000.0;
+
+      if (!VecIsEqual(nearest, checkNearest)) {
+        GDataSetErr->_type = PBErrTypeUnitTestFailed;
+        sprintf(GDataSetErr->_msg, "GDSNearestNeighbour failed");
+        PBErrCatch(GDataSetErr);
+      }
+      VecFree(&checkNearest);
+    }
+    printf("size: %d, ratio bruteForce/AESA: %f\n", 
+      size, delayBruteForce / delayAESA);
+    GDataSetVecFloatFreeStatic(&dataset);
+  }
+  printf("UnitTestGDataSetVecFloatProxMatNearestNeighbour OK\n");
+}
+
 void UnitTestGDataSetVecFloat() {
   UnitTestGDataSetVecFloatCreateFreeClone();
   UnitTestGDataSetVecFloatGet();
@@ -407,6 +492,7 @@ void UnitTestGDataSetVecFloat() {
   UnitTestGDataSetVecFloatCreateFromCSVSave();
   UnitTestGDataSetVecFloatSaveCategory();
   UnitTestGDataSetVecFloatAddRemoveSample();
+  UnitTestGDataSetVecFloatProxMatNearestNeighbour();
 }
 
 void UnitTestGDataSetGenBrushPair() {
