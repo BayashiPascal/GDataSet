@@ -3,6 +3,8 @@
   "dataSetType":"0",
   "desc":"./unitTestVecFloatCSV.csv",
   "nbSample":"3",
+  "nbInputs":"0",
+  "nbOutputs":"0",
   "dim":{
     "_dim":"1",
     "_val":"3"

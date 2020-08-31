@@ -6,6 +6,8 @@
     "_dim":"1",
     "_val":["2"]
   },
+  "nbInputs":"2",
+  "nbOutputs":"1",
   "nbSample": "3",
   "samples": [
     {

@@ -7,6 +7,8 @@
     "_val":["3"]
   },
   "nbSample": "3",
+  "nbInputs":"2",
+  "nbOutputs":"1",
   "samples": [
     {
       "_dim":"3",

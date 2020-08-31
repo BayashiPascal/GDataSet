@@ -429,3 +429,64 @@ void _GDSGenBrushPairAddSample(
   that->_dataSet._nbSample += 1;
 }
 #endif 
+
+// Get the number of input values in one sample of the GDataSet 'that'
+#if BUILDMODE != 0
+static inline
+#endif 
+short _GDSGetNbInputs(const GDataSet* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  return that->_nbInputs;
+}
+
+// Get the number of output values in one sample of the GDataSet 'that'
+#if BUILDMODE != 0
+static inline
+#endif 
+short _GDSGetNbOutputs(const GDataSet* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  return that->_nbOutputs;
+}
+
+// Set the number of input values in one sample of the GDataSet 'that' to 'nb'
+#if BUILDMODE != 0
+static inline
+#endif 
+void _GDSSetNbInputs(GDataSet* const that, const short nb) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  that->_nbInputs = nb;
+}
+
+// Set the number of output values in one sample of the GDataSet 'that' to 'nb'
+#if BUILDMODE != 0
+static inline
+#endif 
+void _GDSSetNbOutputs(GDataSet* const that, const short nb) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  that->_nbOutputs = nb;
+}
+

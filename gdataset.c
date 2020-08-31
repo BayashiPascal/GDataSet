@@ -18,6 +18,8 @@ GDataSet GDataSetCreateStatic(GDataSetType type) {
   that._desc = NULL;
   that._type = type;
   that._nbSample = 0;
+  that._nbInputs = 0;
+  that._nbOutputs = 0;
   that._samples = GSetCreateStatic();
   that._sampleDim = NULL; 
   that._split = NULL;
@@ -177,6 +179,26 @@ bool GDataSetDecodeAsJSON(GDataSet* that, const JSONNode* const json) {
   }
   val = JSONValue(prop, 0);
   that->_nbSample = atoi(JSONLabel(val));
+  // Decode nbInputs
+  prop = JSONProperty(json, "nbInputs");
+  if (prop == NULL) {
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, 
+      "Invalid description file (nbInputs missing)");
+    return false;
+  }
+  val = JSONValue(prop, 0);
+  that->_nbInputs = atoi(JSONLabel(val));
+  // Decode nbOutputs
+  prop = JSONProperty(json, "nbOutputs");
+  if (prop == NULL) {
+    GDataSetErr->_type = PBErrTypeInvalidData;
+    sprintf(GDataSetErr->_msg, 
+      "Invalid description file (nbOutputs missing)");
+    return false;
+  }
+  val = JSONValue(prop, 0);
+  that->_nbOutputs = atoi(JSONLabel(val));
   // Return the success code
   return true;
 }
@@ -1092,6 +1114,10 @@ JSONNode* GDataSetVecFloatEncodeAsJSON(
   JSONAddProp(json, "desc", that->_dataSet._desc);
   sprintf(val, "%ld", GDSGetSize(that));
   JSONAddProp(json, "nbSample", val);
+  sprintf(val, "%d", GDSGetNbInputs(that));
+  JSONAddProp(json, "nbInputs", val);
+  sprintf(val, "%d", GDSGetNbOutputs(that));
+  JSONAddProp(json, "nbOutputs", val);
   JSONAddProp(json, "dim", VecEncodeAsJSON(that->_dataSet._sampleDim));
   JSONArrayStruct samples = JSONArrayStructCreateStatic();
   GSetIterForward iter = GSetIterForwardCreateStatic(GDSSamples(that));
@@ -1133,6 +1159,10 @@ JSONNode* GDataSetVecFloatEncodeCategoryAsJSON(
   sprintf(val, "%ld", GDSGetSizeCat(that, iCat));
   JSONAddProp(json, "nbSample", val);
   JSONAddProp(json, "dim", VecEncodeAsJSON(that->_dataSet._sampleDim));
+  sprintf(val, "%d", GDSGetNbInputs(that));
+  JSONAddProp(json, "nbInputs", val);
+  sprintf(val, "%d", GDSGetNbOutputs(that));
+  JSONAddProp(json, "nbOutputs", val);
   JSONArrayStruct samples = JSONArrayStructCreateStatic();
   GDSReset(that, iCat);
   do {

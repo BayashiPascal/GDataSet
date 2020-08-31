@@ -56,7 +56,9 @@ typedef struct GDataSet {
   // e.g.: 
   // if samples are VecFloat<3> then _dim = VecShort<1>[3]
   // if samples are GenBrush then _dim = VecShort<2>[width, height]
-  VecShort* _sampleDim; 
+  VecShort* _sampleDim;
+  short _nbInputs;
+  short _nbOutputs;
   // Splitting of samples
   VecShort* _split;
   // Sets of splitted samples
@@ -166,6 +168,30 @@ void GDataSetGenBrushPairFreeStatic(GDataSetGenBrushPair* const that);
 static inline
 #endif 
 long _GDSGetSize(const GDataSet* const that);
+
+// Get the number of input values in one sample of the GDataSet 'that'
+#if BUILDMODE != 0
+static inline
+#endif 
+short _GDSGetNbInputs(const GDataSet* const that);
+
+// Get the number of output values in one sample of the GDataSet 'that'
+#if BUILDMODE != 0
+static inline
+#endif 
+short _GDSGetNbOutputs(const GDataSet* const that);
+
+// Set the number of input values in one sample of the GDataSet 'that' to 'nb'
+#if BUILDMODE != 0
+static inline
+#endif 
+void _GDSSetNbInputs(GDataSet* const that, const short nb);
+
+// Set the number of output values in one sample of the GDataSet 'that' to 'nb'
+#if BUILDMODE != 0
+static inline
+#endif 
+void _GDSSetNbOutputs(GDataSet* const that, const short nb);
 
 // Get the number of masks in the GDataSet 'that'
 int _GDSGetNbMask(const GDataSet* const that);
@@ -621,6 +647,34 @@ VecFloat* GDSVecFloatNearestNeighbourBrute(
     GDataSetVecFloat*: GDSVecFloatNearestNeighbourBrute, \
     const GDataSetVecFloat*: GDSVecFloatNearestNeighbourBrute, \
     default: PBErrInvalidPolymorphism)(DataSet, Target, ICat)
+
+#define GDSGetNbInputs(DataSet) _Generic(DataSet, \
+  GDataSet*: _GDSGetNbInputs, \
+  const GDataSet*: _GDSGetNbInputs, \
+  GDataSetVecFloat*: _GDSGetNbInputs, \
+  const GDataSetVecFloat*: _GDSGetNbInputs, \
+  default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet)
+
+#define GDSGetNbOutputs(DataSet) _Generic(DataSet, \
+  GDataSet*: _GDSGetNbOutputs, \
+  const GDataSet*: _GDSGetNbOutputs, \
+  GDataSetVecFloat*: _GDSGetNbOutputs, \
+  const GDataSetVecFloat*: _GDSGetNbOutputs, \
+  default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet)
+
+#define GDSSetNbInputs(DataSet, Nb) _Generic(DataSet, \
+  GDataSet*: _GDSSetNbInputs, \
+  const GDataSet*: _GDSSetNbInputs, \
+  GDataSetVecFloat*: _GDSSetNbInputs, \
+  const GDataSetVecFloat*: _GDSSetNbInputs, \
+  default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet, Nb)
+
+#define GDSSetNbOutputs(DataSet, Nb) _Generic(DataSet, \
+  GDataSet*: _GDSSetNbOutputs, \
+  const GDataSet*: _GDSSetNbOutputs, \
+  GDataSetVecFloat*: _GDSSetNbOutputs, \
+  const GDataSetVecFloat*: _GDSSetNbOutputs, \
+  default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet, Nb)
 
 // ================ static inliner ====================
 
