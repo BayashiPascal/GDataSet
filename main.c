@@ -191,6 +191,20 @@ void UnitTestGDataSetVecFloatStepSampleGetSample() {
       PBErrCatch(GDataSetErr);
     }
     VecFree(&sample);
+    VecFloat* inputs = GDSGetSampleInputs(&gdataset, 0);
+    VecFloat* outputs = GDSGetSampleOutputs(&gdataset, 0);
+    if (ISEQUALF(VecGet(inputs, 0), check[iSample * 2]) == false) {
+      GDataSetErr->_type = PBErrTypeUnitTestFailed;
+      sprintf(GDataSetErr->_msg, "GDSGetSampleInputs failed");
+      PBErrCatch(GDataSetErr);
+    }
+    if (ISEQUALF(VecGet(outputs, 0), check[iSample * 2 + 1]) == false) {
+      GDataSetErr->_type = PBErrTypeUnitTestFailed;
+      sprintf(GDataSetErr->_msg, "GDSGetSampleOutputs failed");
+      PBErrCatch(GDataSetErr);
+    }
+    VecFree(&inputs);
+    VecFree(&outputs);
     ++iSample;
   } while (GDSStepSample(&gdataset, 0));
   GDataSetVecFloatFreeStatic(&gdataset);

@@ -670,6 +670,56 @@ VecFloat* GDSGetSampleVecFloat(
   return VecClone(sample);
 }
 
+// Get the inputs of the current sample in the category 'iCat' of
+// the GDataSet 'that'
+VecFloat* GDSGetSampleInputsVecFloat(
+  const GDataSetVecFloat* const that, const int iCat) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+  if (iCat < 0 || iCat >= GDSGetNbCat(that)) {
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(PBImgAnalysisErr->_msg, "'iCat' is invalid (0<=%d<%ld)",
+      iCat, GDSGetNbCat(that));
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  VecFloat* sample = GSetIterGet(((GDataSet*)that)->_iterators + iCat);
+  VecFloat* inputs = VecFloatCreate(GDSGetNbInputs(that));
+  for (short i = GDSGetNbInputs(that); i--;) {
+    VecSet(inputs, i, VecGet(sample, i));
+  }
+  return inputs;
+}
+
+// Get the outputs of the current sample in the category 'iCat' of
+// the GDataSet 'that'
+VecFloat* GDSGetSampleOutputsVecFloat(
+  const GDataSetVecFloat* const that, const int iCat) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+  if (iCat < 0 || iCat >= GDSGetNbCat(that)) {
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(PBImgAnalysisErr->_msg, "'iCat' is invalid (0<=%d<%ld)",
+      iCat, GDSGetNbCat(that));
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  VecFloat* sample = GSetIterGet(((GDataSet*)that)->_iterators + iCat);
+  VecFloat* outputs = VecFloatCreate(GDSGetNbOutputs(that));
+  for (short i = GDSGetNbOutputs(that); i--;) {
+    VecSet(outputs, i, VecGet(sample, i + GDSGetNbInputs(that)));
+  }
+  return outputs;
+}
+
 GDSGenBrushPair* GDSGetSampleGenBrushPair(
   const GDataSetGenBrushPair* const that, const int iCat) {
 #if BUILDMODE == 0

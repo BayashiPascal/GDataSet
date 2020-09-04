@@ -294,6 +294,16 @@ VecFloat* GDSGetSampleVecFloat(
 GDSGenBrushPair* GDSGetSampleGenBrushPair(
   const GDataSetGenBrushPair* const that, const int iCat);
 
+// Get the inputs of the current sample in the category 'iCat' of
+// the GDataSet 'that'
+VecFloat* GDSGetSampleInputsVecFloat(
+  const GDataSetVecFloat* const that, const int iCat);
+
+// Get the outputs of the current sample in the category 'iCat' of
+// the GDataSet 'that'
+VecFloat* GDSGetSampleOutputsVecFloat(
+  const GDataSetVecFloat* const that, const int iCat);
+
 // Release the memory used by the FilePathPair 'that'
 void GDSFilePathPairFree(GDSFilePathPair** const that);
 #ifdef GENBRUSH_H
@@ -505,6 +515,16 @@ VecFloat* GDSVecFloatNearestNeighbourBrute(
   const GDataSetVecFloat*: GDSGetSampleVecFloat, \
   GDataSetGenBrushPair*: GDSGetSampleGenBrushPair, \
   const GDataSetGenBrushPair*: GDSGetSampleGenBrushPair, \
+  default: PBErrInvalidPolymorphism)(DataSet, ICat)
+
+#define GDSGetSampleInputs(DataSet, ICat) _Generic(DataSet, \
+  GDataSetVecFloat*: GDSGetSampleInputsVecFloat, \
+  const GDataSetVecFloat*: GDSGetSampleInputsVecFloat, \
+  default: PBErrInvalidPolymorphism)(DataSet, ICat)
+
+#define GDSGetSampleOutputs(DataSet, ICat) _Generic(DataSet, \
+  GDataSetVecFloat*: GDSGetSampleOutputsVecFloat, \
+  const GDataSetVecFloat*: GDSGetSampleOutputsVecFloat, \
   default: PBErrInvalidPolymorphism)(DataSet, ICat)
 
 #define GDSGetSize(DataSet) _Generic(DataSet, \
