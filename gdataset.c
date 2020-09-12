@@ -555,7 +555,7 @@ void GDataSetGenBrushPairFreeStatic(GDataSetGenBrushPair* const that) {
 // would mean 2 categories with 3 samples in the first one and 4 
 // samples in the second one. There must me at least as many samples 
 // in the data set as the sum of samples in 'cat'.
-// Each category must have at least one sample. Samples are allocated // randomly to the categories.
+// Each category must have at least one sample.
 // If 'that' was already splitted the previous splitting is discarded.
 void _GDSSplit(GDataSet* const that, const VecShort* const cat) {
 #if BUILDMODE == 0
@@ -596,20 +596,20 @@ void _GDSSplit(GDataSet* const that, const VecShort* const cat) {
   }
   // Copy the splitting
   that->_split = VecClone(cat);
-  // Shuffle the samples
-  GSetShuffle(&(that->_samples));
   // Declare an iterator on the samples
   GSetIterForward iter = GSetIterForwardCreateStatic(&(that->_samples));
   // Loop on categories
-  for (long iCat = nbCat; iCat--;) {
+  for (long iCat = 0; iCat < nbCat; ++iCat) {
     // Get the nb of samples for this category
     long nbSample = VecGet(cat, iCat);
     // Loop on the sample
-    for (long iSample = nbSample; iSample-- && GSetIterStep(&iter);) {
-      // Get the next sample
+    for (long iSample = 0; iSample < nbSample; ++iSample) {
+      // Get the sample
       void* sample = GSetIterGet(&iter);
       // Add the sample to the category
       GSetAppend(that->_categories + iCat, sample);
+      // Move to the next sample
+      GSetIterStep(&iter);
     }
   }
   // Allocate memory for the iterators

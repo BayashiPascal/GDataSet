@@ -216,7 +216,7 @@ long _GDSGetSizeCat(const GDataSet* const that, const long iCat);
 // would mean 2 categories with 3 samples in the first one and 4 
 // samples in the second one. There must me at least as many samples 
 // in the data set as the sum of samples in 'cat'.
-// Each category must have at least one sample. Samples are allocated // randomly to the categories.
+// Each category must have at least one sample.
 // If 'that' was already splitted the previous splitting is discarded.
 void _GDSSplit(GDataSet* const that, const VecShort* const cat);
 

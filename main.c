@@ -146,6 +146,12 @@ void UnitTestGDataSetVecFloatSplitUnsplit() {
     sprintf(GDataSetErr->_msg, "GDSSplit failed");
     PBErrCatch(GDataSetErr);
   }
+  if (GDSGetSizeCat(&gdataset, 0) != GSetNbElem(gdataset._dataSet._categories) ||
+    GDSGetSizeCat(&gdataset, 1) != GSetNbElem(gdataset._dataSet._categories + 1)) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSSplit failed");
+    PBErrCatch(GDataSetErr);
+  }
   GDSUnsplit(&gdataset);
   if (GDSGetNbCat(&gdataset) != 1) {
     GDataSetErr->_type = PBErrTypeUnitTestFailed;
@@ -366,8 +372,8 @@ void UnitTestGDataSetVecFloatSaveCategory() {
     GDataSetVecFloatCreateStaticFromFile(
       "./unitTestVecFloatSaveCategory.json");
   float check[] = {
-    20.0,5.0,6.0,
-    10.0,1.0,2.0};
+    10.0,3.0,4.0,
+    20.0,5.0,6.0};
   for (int iSample = 0; iSample < GDSGetSize(&load); ++iSample) {
     for (unsigned int iCol = 0; iCol < importer._nbCol; ++iCol) {
       if (ISEQUALF(check[iSample * importer._nbCol + iCol],
