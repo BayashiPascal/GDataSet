@@ -227,12 +227,18 @@ static inline
 #endif 
 void _GDSUnsplit(GDataSet* const that);
 
+// Shuffle the samples of the GDataSet 'that'.
+#if BUILDMODE != 0
+static inline
+#endif 
+void _GDSShuffle(GDataSet* const that);
+
 // Shuffle the samples of the category 'iCat' of the GDataSet 'that'.
 // Reset the iterator of the category
 #if BUILDMODE != 0
 static inline
 #endif 
-void _GDSShuffle(GDataSet* const that, const long iCat);
+void _GDSShuffleCat(GDataSet* const that, const long iCat);
 
 // Shuffle the samples of all the categories of the GDataSet 'that'.
 // Reset the iterator of the categories
@@ -597,10 +603,16 @@ VecFloat* GDSVecFloatNearestNeighbourBrute(
   const GDataSetGenBrushPair*: _GDSSampleDim, \
   default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet)
 
-#define GDSShuffle(DataSet, ICat) _Generic(DataSet, \
+#define GDSShuffle(DataSet) _Generic(DataSet, \
   GDataSet*: _GDSShuffle, \
   GDataSetVecFloat*: _GDSShuffle, \
   GDataSetGenBrushPair*: _GDSShuffle, \
+  default: PBErrInvalidPolymorphism)((GDataSet*)DataSet)
+
+#define GDSShuffleCat(DataSet, ICat) _Generic(DataSet, \
+  GDataSet*: _GDSShuffleCat, \
+  GDataSetVecFloat*: _GDSShuffleCat, \
+  GDataSetGenBrushPair*: _GDSShuffleCat, \
   default: PBErrInvalidPolymorphism)((GDataSet*)DataSet, ICat)
 
 #define GDSShuffleAll(DataSet) _Generic(DataSet, \

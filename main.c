@@ -168,13 +168,13 @@ void UnitTestGDataSetVecFloatShuffle() {
   char* cfgFilePath = "testGDataSetVecFloat.json";
   GDataSetVecFloat gdataset = 
     GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
-  GDSShuffle(&gdataset, 0);
+  GDSShuffleCat(&gdataset, 0);
   GDataSet* g = (GDataSet*)(&gdataset);
   if (GSetGet(g->_categories, 0) != GSetGet(&(g->_samples), 1)/* ||
     GSetGet(g->_categories, 1) != GSetGet(&(g->_samples), 0) ||
     GSetGet(g->_categories, 2) != GSetGet(&(g->_samples), 1)*/) {
     GDataSetErr->_type = PBErrTypeUnitTestFailed;
-    sprintf(GDataSetErr->_msg, "GDSShuffle failed");
+    sprintf(GDataSetErr->_msg, "GDSShuffleCat failed");
     PBErrCatch(GDataSetErr);
   }
   GDataSetVecFloatFreeStatic(&gdataset);
