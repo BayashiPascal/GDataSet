@@ -342,8 +342,15 @@ const GSet* _GDSGenBrushPairSamples(
 // Center the GDataSet 'that' on its mean
 void GDSMeanCenter(GDataSetVecFloat* const that);
 
+// Center the inputs of the GDataSet 'that' on its mean
+void GDSMeanCenterInputs(GDataSetVecFloat* const that);
+
 // Normalize the GDataSet 'that', ie normalize each of its vectors
 void GDSNormalize(GDataSetVecFloat* const that);
+
+// Normalize the inputs of GDataSet 'that', ie normalize each of its
+// input vectors
+void GDSNormalizeInputs(GDataSetVecFloat* const that);
 
 // Get the mean of the GDataSet 'that'
 VecFloat* GDSGetMean(const GDataSetVecFloat* const that);
@@ -358,6 +365,9 @@ GDataSetVecFloat GDSClone(const GDataSetVecFloat* const that);
 
 // Get the covariance matrix of the GDataSetVecFloat 'that'
 MatFloat* GDSGetCovarianceMatrix(const GDataSetVecFloat* const that);
+
+// Get the covariance matrix of inputs of the GDataSetVecFloat 'that'
+MatFloat* GDSGetInpCovarianceMatrix(const GDataSetVecFloat* const that);
 
 // Get the covariance of the variables at 'indices' in the
 // GDataSetVecFloat 'that'
@@ -699,14 +709,14 @@ VecFloat* GDSVecFloatNearestNeighbourBrute(
   const GDataSet*: _GDSSetNbInputs, \
   GDataSetVecFloat*: _GDSSetNbInputs, \
   const GDataSetVecFloat*: _GDSSetNbInputs, \
-  default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet, Nb)
+  default: PBErrInvalidPolymorphism)((GDataSet*)DataSet, Nb)
 
 #define GDSSetNbOutputs(DataSet, Nb) _Generic(DataSet, \
   GDataSet*: _GDSSetNbOutputs, \
   const GDataSet*: _GDSSetNbOutputs, \
   GDataSetVecFloat*: _GDSSetNbOutputs, \
   const GDataSetVecFloat*: _GDSSetNbOutputs, \
-  default: PBErrInvalidPolymorphism)((const GDataSet*)DataSet, Nb)
+  default: PBErrInvalidPolymorphism)((GDataSet*)DataSet, Nb)
 
 // ================ static inliner ====================
 

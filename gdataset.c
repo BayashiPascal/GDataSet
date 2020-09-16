@@ -815,6 +815,32 @@ void GDSMeanCenter(GDataSetVecFloat* const that) {
   VecFree(&mean);
 }
 
+// Center the inputs of the GDataSet 'that' on its mean
+void GDSMeanCenterInputs(GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Get the mean of the dataset
+  VecFloat* mean = GDSGetMean(that);
+  // Translate all the data by the mean of the data set
+  if (GDSGetSize(that) > 0) {
+    GSetIterForward iter = GSetIterForwardCreateStatic(GDSSamples(that));
+    do {
+      VecFloat* sample = GSetIterGet(&iter);
+      VecFloat* inputs = VecGetOp(sample, 1.0, mean, -1.0);
+      for (int i = GDSGetNbInputs(that); i--;)
+        VecSet(sample, i, VecGet(inputs, i));
+      VecFree(&inputs);
+    } while (GSetIterStep(&iter));
+  }
+  // Free memory
+  VecFree(&mean);
+}
+
 // Normalize the GDataSet 'that', ie normalize each of its vectors
 void GDSNormalize(GDataSetVecFloat* const that) {
 #if BUILDMODE == 0
@@ -830,6 +856,30 @@ void GDSNormalize(GDataSetVecFloat* const that) {
     do {
       VecFloat* sample = GSetIterGet(&iter);
       VecNormalise(sample);
+    } while (GSetIterStep(&iter));
+  }
+}
+
+// Normalize the inputs of GDataSet 'that', ie normalize each of its
+// input vectors
+void GDSNormalizeInputs(GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Normalize all the data of the data set
+  if (GDSGetSize(that) > 0) {
+    GSetIterForward iter = GSetIterForwardCreateStatic(GDSSamples(that));
+    do {
+      VecFloat* sample = GSetIterGet(&iter);
+      VecFloat* inputs = VecGetNewDim(sample, GDSGetNbInputs(that));
+      VecNormalise(inputs);
+      for (int i = GDSGetNbInputs(that); i--;)
+        VecSet(sample, i, VecGet(inputs, i));
+      VecFree(&inputs);
     } while (GSetIterStep(&iter));
   }
 }
@@ -916,6 +966,8 @@ GDataSetVecFloat GDSClone(const GDataSetVecFloat* const that) {
   strcpy(tho->_desc, that->_dataSet._desc);
   tho->_type = that->_dataSet._type;
   tho->_nbSample = that->_dataSet._nbSample;
+  tho->_nbInputs = that->_dataSet._nbInputs;
+  tho->_nbOutputs = that->_dataSet._nbOutputs;
   tho->_sampleDim = VecClone(that->_dataSet._sampleDim);
   tho->_samples = GSetCreateStatic();
   if (GDSGetSize(that) > 0) {
@@ -963,6 +1015,39 @@ MatFloat* GDSGetCovarianceMatrix(const GDataSetVecFloat* const that) {
   VecShort2D dimMat = VecShortCreateStatic2D();
   VecSet(&dimMat, 0, VecGet(dim, 0));
   VecSet(&dimMat, 1, VecGet(dim, 0));
+  MatFloat* res = MatFloatCreate(&dimMat);
+  // Loop on the matrix to set the covariances
+  VecShort2D i = VecShortCreateStatic2D();
+  do {
+    // The matrix is symmetric, avoid calculating twice the same value
+    if (VecGet(&i, 0) > VecGet(&i, 1)) {
+      VecShort2D j = VecShortCreateStatic2D();
+      VecSet(&j, 0, VecGet(&i, 1));
+      VecSet(&j, 1, VecGet(&i, 0));
+      MatSet(res, &i, MatGet(res, &j));
+    } else {
+      float covar = GDSGetCovariance(that, &i); 
+      MatSet(res, &i, covar);
+    }
+  } while(VecStep(&i, &dimMat));
+  // Return the covariance matrix
+  return res;
+}
+
+// Get the covariance matrix of inputs of the GDataSetVecFloat 'that'
+MatFloat* GDSGetInpCovarianceMatrix(const GDataSetVecFloat* const that) {
+#if BUILDMODE == 0
+  if (that == NULL) {
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(PBImgAnalysisErr->_msg, "'that' is null");
+    PBErrCatch(PBImgAnalysisErr);
+  }
+#endif
+  // Get the dimension of the inputksamples
+  int dim = GDSGetNbInputs(that);
+  // Allocate memory for the covariance matrix;
+  VecShort2D dimMat = VecShortCreateStatic2D();
+  VecSetAll(&dimMat, dim);
   MatFloat* res = MatFloatCreate(&dimMat);
   // Loop on the matrix to set the covariances
   VecShort2D i = VecShortCreateStatic2D();
