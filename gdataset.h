@@ -19,7 +19,7 @@
 #include "neuranet.h"
 
 // Define locally the needed types and functions for libraries that were
-// not included to allow the user to inlcude only what's needed for her
+// not included to allow the user to include only what's needed for her
 // application
 #ifndef GENBRUSH_H
 typedef struct GenBrush GenBrush; 
@@ -49,7 +49,7 @@ typedef struct GDataSet {
   // Type of set
   GDataSetType _type;
   // Nb of samples
-  int _nbSample;
+  long _nbSample;
   // Set of samples
   GSet _samples;
   // Dimensions of each sample, they must have all the same dimension
@@ -60,7 +60,7 @@ typedef struct GDataSet {
   short _nbInputs;
   short _nbOutputs;
   // Splitting of samples
-  VecShort* _split;
+  VecLong* _split;
   // Sets of splitted samples
   GSet* _categories;
   // Iterators on the sets of splitted samples
@@ -218,7 +218,7 @@ long _GDSGetSizeCat(const GDataSet* const that, const long iCat);
 // in the data set as the sum of samples in 'cat'.
 // Each category must have at least one sample.
 // If 'that' was already splitted the previous splitting is discarded.
-void _GDSSplit(GDataSet* const that, const VecShort* const cat);
+void _GDSSplit(GDataSet* const that, const VecLong* const cat);
 
 // Unsplit the GDataSet 'that', i.e. after calling GDataSetUnsplit 'that' 
 // has only one category containing all the samples
@@ -632,10 +632,28 @@ VecFloat* GDSVecFloatNearestNeighbourBrute(
   default: PBErrInvalidPolymorphism)((GDataSet*)DataSet)
 
 #define GDSSplit(DataSet, Cat) _Generic(DataSet, \
-  GDataSet*: _GDSSplit, \
-  GDataSetVecFloat*: _GDSSplit, \
-  GDataSetGenBrushPair*: _GDSSplit, \
-  default: PBErrInvalidPolymorphism)((GDataSet*)DataSet, Cat)
+  GDataSet*: _Generic(Cat, \
+    VecLong*: _GDSSplit, \
+    const VecLong*: _GDSSplit, \
+    VecLong2D*: _GDSSplit, \
+    const VecLong2D*: _GDSSplit, \
+    VecLong3D*: _GDSSplit, \
+    const VecLong3D*: _GDSSplit), \
+  GDataSetVecFloat*: _Generic(Cat, \
+    VecLong*: _GDSSplit, \
+    const VecLong*: _GDSSplit, \
+    VecLong2D*: _GDSSplit, \
+    const VecLong2D*: _GDSSplit, \
+    VecLong3D*: _GDSSplit, \
+    const VecLong3D*: _GDSSplit), \
+  GDataSetGenBrushPair*: _Generic(Cat, \
+    VecLong*: _GDSSplit, \
+    const VecLong*: _GDSSplit, \
+    VecLong2D*: _GDSSplit, \
+    const VecLong2D*: _GDSSplit, \
+    VecLong3D*: _GDSSplit, \
+    const VecLong3D*: _GDSSplit), \
+  default: PBErrInvalidPolymorphism)((GDataSet*)DataSet, (const VecLong*)Cat)
 
 #define GDSStepSample(DataSet, ICat) _Generic(DataSet, \
   GDataSet*: _GDSStepSample, \

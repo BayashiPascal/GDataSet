@@ -59,7 +59,7 @@ void _GDSUnsplit(GDataSet* const that) {
 #endif
   // Unsplitting is equivalent to splitting in one category with all the 
   // samples
-  VecShort* split = VecShortCreate(1);
+  VecLong* split = VecLongCreate(1);
   VecSet(split, 0, GDSGetSize(that));
   GDSSplit(that, split);
   VecFree(&split);

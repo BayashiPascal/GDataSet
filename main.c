@@ -131,7 +131,7 @@ void UnitTestGDataSetVecFloatSplitUnsplit() {
   char* cfgFilePath = "testGDataSetVecFloat.json";
   GDataSetVecFloat gdataset = 
     GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
-  VecShort* split = VecShortCreate(2);
+  VecLong* split = VecLongCreate(2);
   VecSet(split, 0, 1);
   VecSet(split, 1, 2);
   GDSSplit(&gdataset, split);
@@ -357,10 +357,10 @@ void UnitTestGDataSetVecFloatSaveCategory() {
     GDataSetCreateStaticFromCSV(
       csvPath, 
       &importer);
-  VecShort2D split = VecShortCreateStatic2D();
+  VecLong2D split = VecLongCreateStatic2D();
   VecSet(&split, 0, 1);
   VecSet(&split, 1, 2);
-  GDSSplit(&dataset, (VecShort*)&split);
+  GDSSplit(&dataset, &split);
   FILE* stream = fopen("./unitTestVecFloatSaveCategory.json", "w");
   GDSVecFloatSaveCategory(
     &dataset, 
@@ -393,10 +393,10 @@ void UnitTestGDataSetVecFloatAddRemoveSample() {
   char* cfgFilePath = "testGDataSetVecFloatNormalize.json";
   GDataSetVecFloat dataset = 
     GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
-  VecShort2D split = VecShortCreateStatic2D();
+  VecLong2D split = VecLongCreateStatic2D();
   VecSet(&split, 0, 1);
   VecSet(&split, 1, 2);
-  GDSSplit(&dataset, (VecShort*)&split);
+  GDSSplit(&dataset, &split);
   GDSRemoveAllSample(&dataset);
   if (GDSGetNbCat(&dataset) != 1 ||
     GDSGetSize(&dataset) != 0) {
@@ -460,7 +460,7 @@ void UnitTestGDataSetVecFloatProxMatNearestNeighbour() {
       VecSet(sample, 2, (0.5 - rnd()) * 100.0);
       GDSAddSample(&dataset, sample);
     }
-    VecShort* split = VecShortCreate(1);
+    VecLong* split = VecLongCreate(1);
     VecSet(split, 0, size);
     GDSSplit(&dataset, split);
     VecFree(&split);

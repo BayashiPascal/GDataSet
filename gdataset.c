@@ -342,7 +342,7 @@ void GDSResetCategories(GDataSet* const that) {
 #endif
   if (that->_split) 
     VecFree(&(that->_split));
-  that->_split = VecShortCreate(1);
+  that->_split = VecLongCreate(1);
   VecSet(that->_split, 0, GDSGetSize(that));
   if (that->_categories) {
     for (int iCat = GDSGetNbCat(that); iCat--;) {
@@ -557,7 +557,7 @@ void GDataSetGenBrushPairFreeStatic(GDataSetGenBrushPair* const that) {
 // in the data set as the sum of samples in 'cat'.
 // Each category must have at least one sample.
 // If 'that' was already splitted the previous splitting is discarded.
-void _GDSSplit(GDataSet* const that, const VecShort* const cat) {
+void _GDSSplit(GDataSet* const that, const VecLong* const cat) {
 #if BUILDMODE == 0
   if (that == NULL) {
     GDataSetErr->_type = PBErrTypeNullPointer;
@@ -980,7 +980,7 @@ GDataSetVecFloat GDSClone(const GDataSetVecFloat* const that) {
   tho->_split = NULL;
   tho->_categories = NULL;
   tho->_iterators = NULL;
-  tho->_split = VecShortCreate(1);
+  tho->_split = VecLongCreate(1);
   VecSet(tho->_split, 0, tho->_nbSample);
   tho->_categories = PBErrMalloc(GDataSetErr, sizeof(GSet));
   tho->_categories[0] = GSetCreateStatic();
