@@ -1924,14 +1924,12 @@ bool GDSVecFloatIsOutlierSampleCat(
 
   }
 
-  if (iSample >= GDSGetSizeCat(that, iCat))) {
+  if (sample == NULL) {
 
-    GDataSetErr->_type = PBErrTypeInvalidArg;
+    GDataSetErr->_type = PBErrTypeNullPointer;
     sprintf(
       GDataSetErr->_msg,
-      "'iSample' is invalid (%ld<=%ld)",
-      iSample,
-      GDSGetSizeCat(that, iCat));
+      "'sample' is null");
     PBErrCatch(GDataSetErr);
 
   }
@@ -2071,5 +2069,74 @@ bool GDSVecFloatIsOutlierSampleCat(
   } else {
     return false;
   }
+
+}
+
+// Remove the outliers from the category 'iCat', check
+// GDSVecFloatIsOutlierSampleCat to see how outliers are identified.
+// Return a GSetVecFloat containing the removed outliers. The _split
+// property is updated with the remaining number of sample in the
+// category
+GSetVecFloat* GDSVecFloatRemoveOutlierCat(
+  const GDataSetVecFloat* that,
+                     long iCat,
+             unsigned int nbOpponent) {
+
+#if BUILDMODE == 0
+
+  if (that == NULL) {
+
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(
+      GDataSetErr->_msg,
+      "'that' is null");
+    PBErrCatch(GDataSetErr);
+
+  }
+
+  if (iCat >= GDSGetNbCat(that)) {
+
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(
+      GDataSetErr->_msg,
+      "'iCat' is invalid (%ld<=%ld)",
+      iCat,
+      GDSGetNbCat(that));
+    PBErrCatch(GDataSetErr);
+
+  }
+
+#endif
+
+  // Create the set of outliers
+  GSetVecFloat* outliers = GSetVecFloatCreate();
+
+  // If there is no sample in the category
+  if (GDSGetSizeCat(that, iCat) == 0) {
+    return outliers;
+  }
+
+  // Loop on the samples
+  GDSReset(that, iCat);
+  bool step = true;
+  do {
+    step = true;
+    VecFloat* sample = GSetIterGet(((GDataSet*)that)->_iterators + iCat);
+    if (GDSIsOutlierSampleCat(that, sample, iCat, nbOpponent)) {
+      GSetAppend(
+        outliers,
+        sample);
+      step = GSetIterRemoveElem(((GDataSet*)that)->_iterators + iCat);
+    } else {
+      step = false;
+    }
+  } while (step || GDSStepSample(that, iCat));
+  VecSet(
+    ((GDataSet*)that)->_split,
+    iCat,
+    GSetNbElem(((GDataSet*)that)->_categories + iCat));
+
+  // Return the outliers
+  return outliers;
 
 }

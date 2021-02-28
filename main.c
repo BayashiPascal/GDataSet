@@ -638,10 +638,11 @@ void UnitTestGDataSetOutliers() {
   char* cfgFilePath = "testGDataSetVecFloatOutlier.json";
   GDataSetVecFloat dataset = 
     GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
+  VecFloat* sample = GDSGetSample(&dataset, 0);
   bool isOutlier =
     GDSIsOutlierSampleCat(
       &dataset,
-      GDSGetSample(&dataset, 0),
+      sample,
       0,
       0);
   if (!isOutlier) {
@@ -652,7 +653,7 @@ void UnitTestGDataSetOutliers() {
   isOutlier =
     GDSIsOutlierSampleCat(
       &dataset,
-      GDSGetSample(&dataset, 0),
+      sample,
       0,
       1);
   if (isOutlier) {
@@ -660,11 +661,13 @@ void UnitTestGDataSetOutliers() {
     sprintf(GDataSetErr->_msg, "GDSIsOutlierSampleCat failed (2)");
     PBErrCatch(GDataSetErr);
   }
+  VecFree(&sample);
   GDSStepSample(&dataset, 0);
+  sample = GDSGetSample(&dataset, 0);
   isOutlier =
     GDSIsOutlierSampleCat(
       &dataset,
-      GDSGetSample(&dataset, 0),
+      sample,
       0,
       0);
   if (isOutlier) {
@@ -672,7 +675,31 @@ void UnitTestGDataSetOutliers() {
     sprintf(GDataSetErr->_msg, "GDSIsOutlierSampleCat failed (3)");
     PBErrCatch(GDataSetErr);
   }
+  VecFree(&sample);
 
+  GSetVecFloat* outliers =
+    GDSVecFloatRemoveOutlierCat(
+      &dataset,
+      0,
+      0);
+  if (GSetNbElem(outliers) != 1) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSVecFloatRemoveOutlierCat failed (1)");
+    PBErrCatch(GDataSetErr);
+  }
+  if (GSetNbElem(((GDataSet*)&dataset)->_categories) != 3) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSVecFloatRemoveOutlierCat failed (2)");
+    PBErrCatch(GDataSetErr);
+  }
+  if (VecGet(((GDataSet*)&dataset)->_split, 0) != 3) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSVecFloatRemoveOutlierCat failed (3)");
+    PBErrCatch(GDataSetErr);
+  }
+
+  GSetFlush(outliers);
+  GSetFree(&outliers);
   GDataSetVecFloatFreeStatic(&dataset);
 
   printf("UnitTestGDataSetOutliers OK\n");
@@ -684,12 +711,11 @@ void UnitTestAll() {
   UnitTestGDataSetNNEval();
   UnitTestGDataSetOutliers();
   UnitTestSDSIA();
+  UnitTestGDataSetOutliers();
 }
 
 int main(void) {
-  //UnitTestAll();
-  UnitTestGDataSetOutliers();
-
+  UnitTestAll();
   return 0;
 }
 

@@ -508,6 +508,16 @@ bool GDSVecFloatIsOutlierSampleCat(
                      long iCat,
              unsigned int nbOpponent);
 
+// Remove the outliers from the category 'iCat', check
+// GDSVecFloatIsOutlierSampleCat to see how outliers are identified.
+// Return a GSetVecFloat containing the removed outliers. The _split
+// property is updated with the remaining number of sample in the
+// category
+GSetVecFloat* GDSVecFloatRemoveOutlierCat(
+  const GDataSetVecFloat* that,
+                     long iCat,
+             unsigned int nbOpponent);
+
 // ================= Polymorphism ==================
 
 #define GDSRemoveAllSample(DataSet) _Generic(DataSet, \
