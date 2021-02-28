@@ -1,0 +1,30 @@
+{
+  "dataSet": "testGDataSet",
+  "dataSetType": "0",
+  "desc": "UnitTestGDataSetCreateFree",
+  "dim": {
+    "_dim":"1",
+    "_val":["2"]
+  },
+  "nbInputs":"1",
+  "nbOutputs":"1",
+  "nbSample": "4",
+  "samples": [
+    {
+      "_dim":"2",
+      "_val":["0.0","1.0"]
+    },
+    {
+      "_dim":"2",
+      "_val":["2.0","1.0"]
+    },
+    {
+      "_dim":"2",
+      "_val":["2.5","1.0"]
+    },
+    {
+      "_dim":"2",
+      "_val":["0.1","2.0"]
+    }
+  ]
+}

@@ -494,6 +494,20 @@ VecFloat* GDSVecFloatNearestNeighbourBrute(
           const VecFloat* target,
                       int iCat);
 
+// Check if the 'iSample'-th sample in the category 'iCat' of the
+// GDataSetVecFloat 'that' is an outlier. The outliers are identified as follow.
+// For each sample, the nearest (in term of euclidian distance of inputs)
+// sample with same output values is searched. Then, the number of nearer
+// samples with different output values (called "opponents") is calculated.
+// Finally, if there is more than 'nbOpponent' opponents, the sample is
+// considered to be an outlier. The lower 'nbOpponent' is the more samples
+// will be considered as outliers.
+bool GDSVecFloatIsOutlierSampleCat(
+  const GDataSetVecFloat* that,
+          const VecFloat* sample,
+                     long iCat,
+             unsigned int nbOpponent);
+
 // ================= Polymorphism ==================
 
 #define GDSRemoveAllSample(DataSet) _Generic(DataSet, \
@@ -707,6 +721,12 @@ VecFloat* GDSVecFloatNearestNeighbourBrute(
     GDataSetVecFloat*: GDSVecFloatNearestNeighbourBrute, \
     const GDataSetVecFloat*: GDSVecFloatNearestNeighbourBrute, \
     default: PBErrInvalidPolymorphism)(DataSet, Target, ICat)
+
+#define GDSIsOutlierSampleCat(DataSet, ISample, ICat, NbOpponent) \
+  _Generic(DataSet, \
+    GDataSetVecFloat*: GDSVecFloatIsOutlierSampleCat, \
+    const GDataSetVecFloat*: GDSVecFloatIsOutlierSampleCat, \
+    default: PBErrInvalidPolymorphism)(DataSet, ISample, ICat, NbOpponent)
 
 #define GDSGetNbInputs(DataSet) _Generic(DataSet, \
   GDataSet*: _GDSGetNbInputs, \

@@ -1886,3 +1886,190 @@ VecFloat* GDSVecFloatNearestNeighbourBrute(
 
 }
 
+// Check if the 'sample' in the category 'iCat' of the
+// GDataSetVecFloat 'that' is an outlier. The outliers are identified as follow.
+// For each sample, the nearest (in term of euclidian distance of inputs)
+// sample with same output values is searched. Then, the number of nearer
+// samples with different output values (called "opponents") is calculated.
+// Finally, if there is more than 'nbOpponent' opponents, the sample is
+// considered to be an outlier. The lower 'nbOpponent' is the more samples
+// will be considered as outliers.
+bool GDSVecFloatIsOutlierSampleCat(
+  const GDataSetVecFloat* that,
+          const VecFloat* sample,
+                     long iCat,
+             unsigned int nbOpponent) {
+
+#if BUILDMODE == 0
+
+  if (that == NULL) {
+
+    GDataSetErr->_type = PBErrTypeNullPointer;
+    sprintf(
+      GDataSetErr->_msg,
+      "'that' is null");
+    PBErrCatch(GDataSetErr);
+
+  }
+
+  if (iCat >= GDSGetNbCat(that)) {
+
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(
+      GDataSetErr->_msg,
+      "'iCat' is invalid (%ld<=%ld)",
+      iCat,
+      GDSGetNbCat(that));
+    PBErrCatch(GDataSetErr);
+
+  }
+
+  if (iSample >= GDSGetSizeCat(that, iCat))) {
+
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(
+      GDataSetErr->_msg,
+      "'iSample' is invalid (%ld<=%ld)",
+      iSample,
+      GDSGetSizeCat(that, iCat));
+    PBErrCatch(GDataSetErr);
+
+  }
+
+  if (GDSGetNbInputs(that) <= 0) {
+
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(
+      GDataSetErr->_msg,
+      "No inputs in the sample");
+    PBErrCatch(GDataSetErr);
+
+  }
+
+  if (GDSGetNbOutputs(that) <= 0) {
+
+    GDataSetErr->_type = PBErrTypeInvalidArg;
+    sprintf(
+      GDataSetErr->_msg,
+      "No outputs in the sample");
+    PBErrCatch(GDataSetErr);
+
+  }
+
+#endif
+
+  // If there is no sample in the category
+  if (GDSGetSizeCat(that, iCat) == 0) {
+    return false;
+  }
+
+  // Variable to memorise the nearest distance
+  double nearestDist = -1.0;
+
+  // Get the inputs and outputs of the checked sample
+  VecFloat* inputs = VecFloatCreate(GDSGetNbInputs(that));
+  for (short i = GDSGetNbInputs(that); i--;) {
+    VecSet(inputs, i, VecGet(sample, i));
+  }
+  VecFloat* outputs = VecFloatCreate(GDSGetNbOutputs(that));
+  for (short i = GDSGetNbOutputs(that); i--;) {
+    VecSet(outputs, i, VecGet(sample, i + GDSGetNbInputs(that)));
+  }
+
+  // Create an iterator to loop on the samples of the category
+  GSetIterForward iter = ((GDataSet*)that)->_iterators[iCat];
+  GSetIterReset(&iter);
+
+  // Loop on the samples
+  do {
+    // Get the sample
+    const VecFloat* sampleIter = GSetIterGet(&iter);
+    // Get the sample outputs
+    VecFloat* outputsIter = VecFloatCreate(GDSGetNbOutputs(that));
+    for (short i = GDSGetNbOutputs(that); i--;) {
+      VecSet(outputsIter, i, VecGet(sampleIter, i + GDSGetNbInputs(that)));
+    }
+    // Get the distance to the checked sample
+    float dist =
+      VecDist(
+        outputsIter,
+        outputs);
+    // If it's the same output
+    if (ISEQUALF(dist, 0.0)) {
+      // Get the sample inputs
+      VecFloat* inputsIter = VecFloatCreate(GDSGetNbInputs(that));
+      for (short i = GDSGetNbInputs(that); i--;) {
+        VecSet(inputsIter, i, VecGet(sampleIter, i));
+      }
+      // Get the distance to the checked sample
+      dist =
+        VecDist(
+          inputsIter,
+          inputs);
+      // If it's nearer that the actual nearest
+      if (dist > PBMATH_EPSILON && (nearestDist < 0.0 || nearestDist > dist)) {
+        // Update the nearest dist
+        nearestDist = dist;
+      }
+      // Free memory
+      VecFree(&inputsIter);
+    }
+    // Free memory
+    VecFree(&outputsIter);
+  } while (GSetIterStep(&iter));
+
+  // Declare a variable to count the opponents
+  long nb = 0;
+  // Reset the iterator
+  GSetIterReset(&iter);
+
+  // Loop on the samples
+  do {
+    // Get the sample
+    const VecFloat* sampleIter = GSetIterGet(&iter);
+    // Get the sample outputs
+    VecFloat* outputsIter = VecFloatCreate(GDSGetNbOutputs(that));
+    for (short i = GDSGetNbOutputs(that); i--;) {
+      VecSet(outputsIter, i, VecGet(sampleIter, i + GDSGetNbInputs(that)));
+    }
+    // Get the distance to the checked sample
+    float dist =
+      VecDist(
+        outputsIter,
+        outputs);
+    // If it's not the same output
+    if (!ISEQUALF(dist, 0.0)) {
+      // Get the sample inputs
+      VecFloat* inputsIter = VecFloatCreate(GDSGetNbInputs(that));
+      for (short i = GDSGetNbInputs(that); i--;) {
+        VecSet(inputsIter, i, VecGet(sampleIter, i));
+      }
+      // Get the distance to the checked sample
+      dist =
+        VecDist(
+          inputsIter,
+          inputs);
+      // If it's nearerer than the nearest non opponent
+      if (nearestDist > dist) {
+        // Increment the number of opponents
+        ++nb;
+      }
+      // Free memory
+      VecFree(&inputsIter);
+    }
+    // Free memory
+    VecFree(&outputsIter);
+  } while (GSetIterStep(&iter));
+
+  // Free memory
+  VecFree(&inputs);
+  VecFree(&outputs);
+
+  // Return the result
+  if (nb > nbOpponent) {
+    return true;
+  } else {
+    return false;
+  }
+
+}

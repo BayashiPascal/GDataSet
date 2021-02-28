@@ -632,15 +632,63 @@ void UnitTestGDataSetNNEval() {
   printf("UnitTestNNEval OK\n");
 }
 
+void UnitTestGDataSetOutliers() {
+
+  srandom(1);
+  char* cfgFilePath = "testGDataSetVecFloatOutlier.json";
+  GDataSetVecFloat dataset = 
+    GDataSetVecFloatCreateStaticFromFile(cfgFilePath);
+  bool isOutlier =
+    GDSIsOutlierSampleCat(
+      &dataset,
+      GDSGetSample(&dataset, 0),
+      0,
+      0);
+  if (!isOutlier) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSIsOutlierSampleCat failed (1)");
+    PBErrCatch(GDataSetErr);
+  }
+  isOutlier =
+    GDSIsOutlierSampleCat(
+      &dataset,
+      GDSGetSample(&dataset, 0),
+      0,
+      1);
+  if (isOutlier) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSIsOutlierSampleCat failed (2)");
+    PBErrCatch(GDataSetErr);
+  }
+  GDSStepSample(&dataset, 0);
+  isOutlier =
+    GDSIsOutlierSampleCat(
+      &dataset,
+      GDSGetSample(&dataset, 0),
+      0,
+      0);
+  if (isOutlier) {
+    GDataSetErr->_type = PBErrTypeUnitTestFailed;
+    sprintf(GDataSetErr->_msg, "GDSIsOutlierSampleCat failed (3)");
+    PBErrCatch(GDataSetErr);
+  }
+
+  GDataSetVecFloatFreeStatic(&dataset);
+
+  printf("UnitTestGDataSetOutliers OK\n");
+}
+
 void UnitTestAll() {
   UnitTestGDataSetVecFloat();
   UnitTestGDataSetGenBrushPair();
   UnitTestGDataSetNNEval();
+  UnitTestGDataSetOutliers();
   UnitTestSDSIA();
 }
 
 int main(void) {
-  UnitTestAll();
+  //UnitTestAll();
+  UnitTestGDataSetOutliers();
 
   return 0;
 }
